@@ -1,11 +1,8 @@
 package com.upc.cuentix.dto;
 
-<<<<<<< HEAD
-=======
 import com.upc.cuentix.validations.Create;
 import com.upc.cuentix.validations.Update;
 import jakarta.validation.constraints.DecimalMin;
->>>>>>> giovanni
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -20,32 +17,8 @@ import lombok.Setter;
 public class ProductoDTO {
     private Integer id;
 
-<<<<<<< HEAD
-    @NotBlank
-    private String nombre;
-
-    @NotBlank
-    private String descripcion;
-
-    @NotBlank
-    private String marca;
-
-    @NotBlank
-    private String proovedor;
-
-    @NotBlank
-    private String imagenURL;
-
-    @NotNull
-    private Integer umId;
-
-    @NotNull
-    private Double precioContado;
-
-    @NotNull
-=======
     @NotNull(groups = Create.class, message = "Ingrese el negocio")
-    private Integer idNegocio;
+    private Integer negocioId;
 
     @NotBlank(groups = Create.class, message = "Ingrese el nombre")
     private String nombre;
@@ -63,7 +36,7 @@ public class ProductoDTO {
     private String imagenUrl;
 
     @NotNull(groups = Create.class, message = "Ingrese la unidad de medida")
-    private Integer idUnidadMedida;
+    private Integer unidadMedidaId;
 
     @NotNull(groups = Create.class, message = "Ingrese el precio al contado")
     @DecimalMin(value = "0.0", groups = {Create.class, Update.class}, message = "El precio no puede ser negativo")
@@ -71,15 +44,8 @@ public class ProductoDTO {
 
     @NotNull(groups = Create.class, message = "Ingrese el precio de lista")
     @DecimalMin(value = "0.0", groups = {Create.class, Update.class}, message = "El precio no puede ser negativo")
->>>>>>> giovanni
     private Double precioLista;
 
     private Boolean pagoCuotas;
     private Boolean estado;
-<<<<<<< HEAD
-
-    @NotNull
-    private Integer negocioId;
-=======
->>>>>>> giovanni
 }
