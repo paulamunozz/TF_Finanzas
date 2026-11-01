@@ -36,7 +36,7 @@ public class NegocioService implements INegocioService {
 
         Rol rol = rolRepository.findById(ROL_NEGOCIO)
                 .orElseThrow(() -> new RuntimeException("No existe el rol de negocio"));
-        Giro giro = buscarGiro(dto.getIdGiro());
+        Giro giro = buscarGiro(dto.getGiroId());
 
         Usuario usuario = new Usuario();
         usuario.setCodigo(dto.getRuc());
@@ -74,7 +74,7 @@ public class NegocioService implements INegocioService {
         if (tiene(dto.getRuc())) usuario.setCodigo(dto.getRuc());
         if (tiene(dto.getContrasena())) usuario.setContrasena(dto.getContrasena());
         if (tiene(dto.getRazonSocial())) negocio.setRazonSocial(dto.getRazonSocial());
-        if (dto.getIdGiro() != null) negocio.setGiro(buscarGiro(dto.getIdGiro()));
+        if (dto.getGiroId() != null) negocio.setGiro(buscarGiro(dto.getGiroId()));
         if (tiene(dto.getDireccion())) negocio.setDireccion(dto.getDireccion());
         if (tiene(dto.getTelefono())) negocio.setTelefono(dto.getTelefono());
 
@@ -134,7 +134,7 @@ public class NegocioService implements INegocioService {
         dto.setId(n.getId());
         dto.setRuc(n.getUsuario().getCodigo());
         dto.setRazonSocial(n.getRazonSocial());
-        dto.setIdGiro(n.getGiro() != null ? n.getGiro().getId() : null);
+        dto.setGiroId(n.getGiro() != null ? n.getGiro().getId() : null);
         dto.setDireccion(n.getDireccion());
         dto.setTelefono(n.getTelefono());
         dto.setEstado(n.getEstado());
