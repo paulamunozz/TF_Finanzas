@@ -19,6 +19,6 @@ public class UsuarioDTO {
     @NotBlank(message = "Ingrese la contraseña")
     private String contrasena;
 
-    private Integer idRol;
+    private Integer rolId;
     private Boolean estado;
 }

@@ -25,8 +25,8 @@ public class ProductoService implements IProductoService {
     @Override
     public ProductoDTO registrar(ProductoDTO dto) {
         Producto producto = new Producto();
-        producto.setNegocio(buscarNegocio(dto.getIdNegocio()));
-        producto.setUnidadMedida(buscarUnidad(dto.getIdUnidadMedida()));
+        producto.setNegocio(buscarNegocio(dto.getNegocioId()));
+        producto.setUnidadMedida(buscarUnidad(dto.getUnidadMedidaId()));
         producto.setNombre(dto.getNombre());
         producto.setDescripcion(dto.getDescripcion());
         producto.setMarca(dto.getMarca());
@@ -47,8 +47,8 @@ public class ProductoService implements IProductoService {
         }
         Producto producto = productoRepository.findById(dto.getId()).get();
 
-        if (dto.getIdNegocio() != null) producto.setNegocio(buscarNegocio(dto.getIdNegocio()));
-        if (dto.getIdUnidadMedida() != null) producto.setUnidadMedida(buscarUnidad(dto.getIdUnidadMedida()));
+        if (dto.getNegocioId() != null) producto.setNegocio(buscarNegocio(dto.getNegocioId()));
+        if (dto.getUnidadMedidaId() != null) producto.setUnidadMedida(buscarUnidad(dto.getUnidadMedidaId()));
         if (tiene(dto.getNombre())) producto.setNombre(dto.getNombre());
         if (tiene(dto.getDescripcion())) producto.setDescripcion(dto.getDescripcion());
         if (tiene(dto.getMarca())) producto.setMarca(dto.getMarca());
@@ -112,8 +112,8 @@ public class ProductoService implements IProductoService {
     private ProductoDTO convertir(Producto p) {
         ProductoDTO dto = new ProductoDTO();
         dto.setId(p.getId());
-        dto.setIdNegocio(p.getNegocio().getId());
-        dto.setIdUnidadMedida(p.getUnidadMedida() != null ? p.getUnidadMedida().getId() : null);
+        dto.setNegocioId(p.getNegocio().getId());
+        dto.setUnidadMedidaId(p.getUnidadMedida() != null ? p.getUnidadMedida().getId() : null);
         dto.setNombre(p.getNombre());
         dto.setDescripcion(p.getDescripcion());
         dto.setMarca(p.getMarca());

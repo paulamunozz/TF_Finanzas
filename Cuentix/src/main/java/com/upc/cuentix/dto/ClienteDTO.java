@@ -1,14 +1,9 @@
 package com.upc.cuentix.dto;
 
-<<<<<<< HEAD
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
-=======
 import com.upc.cuentix.validations.Create;
 import com.upc.cuentix.validations.Update;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
->>>>>>> giovanni
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,28 +13,6 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-<<<<<<< HEAD
-public class ClienteDTO {
-    private Integer id;
-
-    @NotBlank
-    private String dni;
-
-    @NotBlank
-    private String contrasena;
-
-    @NotBlank
-    private String nombre;
-
-    @NotBlank
-    private String apellido;
-
-    @NotBlank
-    private String telefono;
-
-    private Boolean estado;
-}
-=======
 
 public class ClienteDTO {
     private Integer id;
@@ -62,4 +35,3 @@ public class ClienteDTO {
 
     private Boolean estado;
 }
->>>>>>> giovanni
