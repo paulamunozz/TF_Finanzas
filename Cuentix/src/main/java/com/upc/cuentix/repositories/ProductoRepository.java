@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface IProductoRepository extends JpaRepository<Producto, Integer> {
+public interface ProductoRepository extends JpaRepository<Producto, Integer> {
     boolean existsByIdAndEstado(Integer id, Boolean estado);
     List<Producto> findByEstado(Boolean estado);
     List<Producto> findByNegocio_IdAndEstado(Integer id, Boolean estado);

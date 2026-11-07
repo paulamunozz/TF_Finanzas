@@ -5,9 +5,9 @@ import com.upc.cuentix.entities.Cliente;
 import com.upc.cuentix.entities.Rol;
 import com.upc.cuentix.entities.Usuario;
 import com.upc.cuentix.instances.IClienteService;
-import com.upc.cuentix.repositories.IClienteRepository;
-import com.upc.cuentix.repositories.IRolRepository;
-import com.upc.cuentix.repositories.IUsuarioRepository;
+import com.upc.cuentix.repositories.ClienteRepository;
+import com.upc.cuentix.repositories.RolRepository;
+import com.upc.cuentix.repositories.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,9 +17,9 @@ public class ClienteService implements IClienteService {
 
     private static final Integer ROL_CLIENTE = 2;
 
-    @Autowired private IClienteRepository clienteRepository;
-    @Autowired private IUsuarioRepository usuarioRepository;
-    @Autowired private IRolRepository rolRepository;
+    @Autowired private ClienteRepository clienteRepository;
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private RolRepository rolRepository;
 
     @Override
     @Transactional

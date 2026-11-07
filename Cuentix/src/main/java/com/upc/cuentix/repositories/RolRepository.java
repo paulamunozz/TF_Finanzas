@@ -4,5 +4,5 @@ import com.upc.cuentix.entities.Rol;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 
-public interface IRolRepository extends JpaRepository<Rol, Integer> {
+public interface RolRepository extends JpaRepository<Rol, Integer> {
 }
