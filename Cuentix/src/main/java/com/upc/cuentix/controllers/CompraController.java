@@ -12,8 +12,7 @@ import java.util.List;
 
 @RestController @RequestMapping
 public class CompraController {
-    @Autowired
-    private CompraService compraService;
+    @Autowired private CompraService compraService;
 
     @PostMapping("/preRegistrarCompra")
     public CompraDTO preRegistrar(@RequestBody @Validated(Create.class) CompraDTO compraDTO) {
@@ -46,7 +45,7 @@ public class CompraController {
     }
 
     @PostMapping("/comprarPorID")
-    public CompraDTO buscarPorId(Integer id) {
+    public CompraDTO buscarPorId(@RequestBody Integer id) {
         return compraService.buscarPorId(id);
     }
 }
