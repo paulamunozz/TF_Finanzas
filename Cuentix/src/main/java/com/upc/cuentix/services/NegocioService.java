@@ -6,10 +6,10 @@ import com.upc.cuentix.entities.Negocio;
 import com.upc.cuentix.entities.Rol;
 import com.upc.cuentix.entities.Usuario;
 import com.upc.cuentix.instances.INegocioService;
-import com.upc.cuentix.repositories.IGiroRepository;
-import com.upc.cuentix.repositories.INegocioRepository;
-import com.upc.cuentix.repositories.IRolRepository;
-import com.upc.cuentix.repositories.IUsuarioRepository;
+import com.upc.cuentix.repositories.GiroRepository;
+import com.upc.cuentix.repositories.NegocioRepository;
+import com.upc.cuentix.repositories.RolRepository;
+import com.upc.cuentix.repositories.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,10 +22,10 @@ public class NegocioService implements INegocioService {
 
     private static final Integer ROL_NEGOCIO = 3;
 
-    @Autowired private INegocioRepository negocioRepository;
-    @Autowired private IUsuarioRepository usuarioRepository;
-    @Autowired private IRolRepository rolRepository;
-    @Autowired private IGiroRepository giroRepository;
+    @Autowired private NegocioRepository negocioRepository;
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private RolRepository rolRepository;
+    @Autowired private GiroRepository giroRepository;
 
     @Override
     @Transactional

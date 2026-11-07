@@ -5,9 +5,9 @@ import com.upc.cuentix.entities.Negocio;
 import com.upc.cuentix.entities.Producto;
 import com.upc.cuentix.entities.UnidadMedida;
 import com.upc.cuentix.instances.IProductoService;
-import com.upc.cuentix.repositories.INegocioRepository;
-import com.upc.cuentix.repositories.IProductoRepository;
-import com.upc.cuentix.repositories.IUnidadMedidaRepository;
+import com.upc.cuentix.repositories.NegocioRepository;
+import com.upc.cuentix.repositories.ProductoRepository;
+import com.upc.cuentix.repositories.UnidadMedidaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,9 +18,9 @@ import java.util.stream.Collectors;
 @Service
 public class ProductoService implements IProductoService {
 
-    @Autowired private IProductoRepository productoRepository;
-    @Autowired private INegocioRepository negocioRepository;
-    @Autowired private IUnidadMedidaRepository unidadMedidaRepository;
+    @Autowired private ProductoRepository productoRepository;
+    @Autowired private NegocioRepository negocioRepository;
+    @Autowired private UnidadMedidaRepository unidadMedidaRepository;
 
     @Override
     public ProductoDTO registrar(ProductoDTO dto) {

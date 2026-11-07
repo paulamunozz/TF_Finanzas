@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -17,13 +17,19 @@ public class Compra {
     private Integer id;
 
     @Column(name = "fecha")
-    private Date fecha;
+    private LocalDate fecha;
+
+    @Column(name = "tasa")
+    private Double tasa;
+
+    @Column(name = "tasa_mora")
+    private Double tasaMora;
 
     @Column(name = "total_inicial")
     private Double totalInicial;
 
-    @Column(name = "intereses_gracia")
-    private Double interesesGracia;
+    @Column(name = "total_gracia")
+    private Double totalGracia;
 
     @Column(name = "intereses")
     private Double intereses;
@@ -42,12 +48,6 @@ public class Compra {
 
     @Column(name = "final_cuotas")
     private Boolean finalCuotas;
-
-    @Column(name = "tasa")
-    private Double tasa;
-
-    @Column(name = "tasa_mora")
-    private Double tasaMora;
 
     @ManyToOne
     @JoinColumn(name = "cc_id")

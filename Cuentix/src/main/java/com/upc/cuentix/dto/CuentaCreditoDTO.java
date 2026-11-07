@@ -29,10 +29,10 @@ public class CuentaCreditoDTO {
     private Integer maxMeses;
 
     @NotNull
-    private Integer diaCorte;
+    private Double diaCorte;
 
     @NotNull
-    private Integer diaPago;
+    private Double diaPago;
 
     @NotNull
     private Integer monedaId;
