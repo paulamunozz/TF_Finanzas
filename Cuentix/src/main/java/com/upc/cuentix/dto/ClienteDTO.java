@@ -23,6 +23,7 @@ public class ClienteDTO {
 
     @NotBlank(groups = Create.class, message = "Tiene que ingresar su contraseña")
     private String contrasena;
+    private String contrasenaActual;
 
     @NotBlank(groups = Create.class, message = "Ingrese el nombre")
     private String nombre;

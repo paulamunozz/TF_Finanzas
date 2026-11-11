@@ -11,6 +11,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.upc.cuentix.entities.CuentaCredito;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -25,17 +30,69 @@ public class CompraService implements ICompraService{
     @Autowired private CuotaRepository cuotaRepository;
     @Autowired private ModelMapper modelMapper;
 
+
     @Override
     public CompraDTO preRegistrar(CompraDTO compraDTO) {
-        if (!cuentaCreditoRepository.existsById(compraDTO.getCcId())){
-            throw new RuntimeException("No existe");
+
+        // Verificar que se envió el ID de la cuenta.
+        if (compraDTO.getCcId() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Debe indicar una cuenta de crédito"
+            );
         }
 
-        Compra compra = modelMapper.map(compraDTO, Compra.class);
+        // Buscar la cuenta de crédito en PostgreSQL.
+        CuentaCredito cuenta = cuentaCreditoRepository
+                .findById(compraDTO.getCcId())
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "La cuenta de crédito no existe"
+                        )
+                );
 
+        if (!Boolean.TRUE.equals(cuenta.getEstado())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La cuenta de crédito no está activa"
+            );
+        }
 
-        compraRepository.save(compra);
-        return modelMapper.map(compra, CompraDTO.class);
+        // Validar el plazo de la compra a crédito.
+        if (Boolean.TRUE.equals(compraDTO.getContadoCredito())) {
+            if (compraDTO.getNumMeses() == null ||
+                    compraDTO.getNumMeses() < 1 ||
+                    compraDTO.getNumMeses() > cuenta.getMaxMeses()) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "El plazo de la compra no es válido"
+                );
+            }
+        }
+
+        // Convertir el DTO a entidad.
+        Compra compra = modelMapper.map(
+                compraDTO,
+                Compra.class
+        );
+
+        // Asociar explícitamente la cuenta de crédito.
+        compra.setCuentaCredito(cuenta);
+
+        // Guardar la compra.
+        Compra compraGuardada = compraRepository.save(compra);
+
+        // Preparar respuesta.
+        CompraDTO respuesta = modelMapper.map(
+                compraGuardada,
+                CompraDTO.class
+        );
+
+        respuesta.setCcId(cuenta.getId());
+
+        return respuesta;
     }
 
     @Override

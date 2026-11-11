@@ -21,4 +21,10 @@ public class UsuarioDTO {
 
     private Integer rolId;
     private Boolean estado;
+    private String nombre;
+    private String apellido;
+    private String telefono;
+
+    private String csrfToken;
+
 }

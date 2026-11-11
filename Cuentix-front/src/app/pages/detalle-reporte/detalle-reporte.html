@@ -1,0 +1,130 @@
+
+<div class="detalle-contenedor">
+
+  <!-- Encabezado del reporte -->
+  <div class="encabezado-detalle">
+
+    <a
+      routerLink="/cliente/reporte"
+      class="enlace-volver">
+      ← Reporte
+    </a>
+
+    <h1>
+      Reporte de pago
+      @if (nombreTienda) {
+        : {{ nombreTienda }}
+      }
+    </h1>
+
+  </div>
+
+  <!-- Tabla de cuotas -->
+  <div class="tabla-responsive">
+
+    <table class="tabla-detalle">
+
+      <thead>
+        <tr>
+          <th>F. Compra</th>
+          <th>Núm. Cuota</th>
+          <th>Mora</th>
+          <th>Total a pagar</th>
+          <th>F. Vencimiento</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        @if (cargando) {
+
+          <tr>
+            <td colspan="6" class="mensaje-tabla">
+              Cargando cuotas...
+            </td>
+          </tr>
+
+        } @else if (error) {
+
+          <tr>
+            <td colspan="6" class="mensaje-tabla mensaje-error">
+              {{ error }}
+            </td>
+          </tr>
+
+        } @else if (cuotas.length === 0) {
+
+          <tr>
+            <td colspan="6" class="mensaje-tabla">
+              Aún no hay información de cuotas disponible.
+            </td>
+          </tr>
+
+        } @else {
+
+          @for (cuota of cuotas; track cuota.id) {
+
+            <tr>
+
+              <td>{{ cuota.fechaCompra }}</td>
+
+              <td>{{ cuota.numeroCuota }}</td>
+
+              <td>
+                <span
+                  [class.mora-roja]="cuota.tieneMora"
+                  [class.mora-verde]="!cuota.tieneMora">
+                  {{ cuota.mora }}
+                </span>
+              </td>
+
+              <td>
+                S/ {{ cuota.totalPagar.toFixed(2) }}
+              </td>
+
+              <td>{{ cuota.fechaVencimiento }}</td>
+
+              <td>
+                <button
+                  type="button"
+                  class="boton-detalle"
+                  disabled
+                  title="Pendiente de implementar el detalle de cuota">
+                  Detalle
+                </button>
+              </td>
+
+            </tr>
+
+          }
+
+        }
+
+      </tbody>
+
+      <tfoot>
+        <tr>
+
+          <td colspan="3" class="total-texto">
+            Total a pagar
+          </td>
+
+          <td class="total-valor">
+            @if (cuotas.length > 0 && !cargando && !error) {
+              S/ {{ totalPagar.toFixed(2) }}
+            } @else {
+              —
+            }
+          </td>
+
+          <td colspan="2"></td>
+
+        </tr>
+      </tfoot>
+
+    </table>
+
+  </div>
+
+</div>

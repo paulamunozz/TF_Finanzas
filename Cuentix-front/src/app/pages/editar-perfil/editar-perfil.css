@@ -1,0 +1,221 @@
+
+:host {
+  display: block;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.editar-contenedor {
+  min-height: calc(100vh - 55px);
+  background-color: #9ba8e5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 20px;
+}
+
+.contenido-editar {
+  width: 100%;
+  max-width: 510px;
+}
+
+.tarjeta-editar {
+  background-color: #3049c8;
+  border-radius: 3px;
+  padding: 28px 35px;
+  color: white;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.campo {
+  display: grid;
+  grid-template-columns: 145px 1fr;
+  align-items: center;
+  gap: 15px;
+}
+
+.campo label {
+  color: white;
+  font-size: 13px;
+}
+
+.campo input {
+  height: 36px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  font-size: 13px;
+  width: 100%;
+  background: white;
+  color: #222;
+}
+
+.campo input:focus {
+  outline: 2px solid #8094fa;
+}
+
+.campo input[readonly] {
+  background: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.acciones {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 12px;
+}
+
+.acciones button,
+.acciones-confirmacion button {
+  border: none;
+  border-radius: 3px;
+  padding: 12px 15px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.boton-eliminar {
+  background-color: #ff4b35;
+  color: white;
+}
+
+.boton-eliminar:hover {
+  background-color: #e13925;
+}
+
+.boton-guardar {
+  background-color: #8094fa;
+  color: white;
+}
+
+.boton-guardar:hover {
+  background-color: #6b81e7;
+}
+
+.boton-volver {
+  align-self: center;
+  background: transparent;
+  color: white;
+  border: none;
+  text-decoration: underline;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 7px;
+}
+
+.confirmacion {
+  background: #cb6777;
+  color: #211517;
+  padding: 15px;
+  border-radius: 3px;
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 13px;
+}
+
+.acciones-confirmacion {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.boton-cancelar {
+  background-color: #eeeeee;
+  color: #222;
+}
+
+.boton-confirmar {
+  background-color: #ff4b35;
+  color: white;
+}
+
+.boton-confirmar:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mensaje-error {
+  background-color: #ffb6aa;
+  color: #74251e;
+  padding: 10px;
+  text-align: center;
+  font-size: 12px;
+  border-radius: 3px;
+}
+
+.mensaje-aviso {
+  background-color: #e4ebff;
+  color: #253b88;
+  padding: 10px;
+  text-align: center;
+  font-size: 12px;
+  border-radius: 3px;
+}
+
+.nota-seguridad {
+  text-align: center;
+  font-size: 11px;
+  color: #e2e7ff;
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .tarjeta-editar {
+    padding: 25px 20px;
+  }
+
+  .campo {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .acciones {
+    flex-wrap: wrap;
+  }
+}
+
+/* CONFIRMACIÓN DE ELIMINACIÓN */
+
+.confirmar-eliminacion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #8094fa;
+  border-radius: 4px;
+}
+
+.confirmar-eliminacion label {
+  color: white;
+  font-size: 12px;
+}
+
+.confirmar-eliminacion input {
+  width: 100%;
+  height: 36px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.boton-confirmar {
+  background-color: #ff4b35;
+  color: white;
+}
+
+.boton-confirmar:hover:not(:disabled) {
+  background-color: #d93725;
+}
+
+.boton-confirmar:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+

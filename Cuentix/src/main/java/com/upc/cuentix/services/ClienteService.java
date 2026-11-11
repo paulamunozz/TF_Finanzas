@@ -11,11 +11,17 @@ import com.upc.cuentix.repositories.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 
 @Service
 public class ClienteService implements IClienteService {
 
     private static final Integer ROL_CLIENTE = 2;
+    private final BCryptPasswordEncoder encoder =
+            new BCryptPasswordEncoder();
 
     @Autowired private ClienteRepository clienteRepository;
     @Autowired private UsuarioRepository usuarioRepository;
@@ -33,7 +39,9 @@ public class ClienteService implements IClienteService {
 
         Usuario usuario = new Usuario();
         usuario.setCodigo(dto.getDni());
-        usuario.setContrasena(dto.getContrasena());
+        usuario.setContrasena(
+                encoder.encode(dto.getContrasena())
+        );
         usuario.setRol(rol);
         usuario.setEstado(true);
         usuario = usuarioRepository.save(usuario);
@@ -64,7 +72,11 @@ public class ClienteService implements IClienteService {
         }
 
         if (tiene(dto.getDni())) usuario.setCodigo(dto.getDni());
-        if (tiene(dto.getContrasena())) usuario.setContrasena(dto.getContrasena());
+        if (tiene(dto.getContrasena())) {
+            usuario.setContrasena(
+                    encoder.encode(dto.getContrasena())
+            );
+        }
         if (tiene(dto.getNombre())) cliente.setNombre(dto.getNombre());
         if (tiene(dto.getApellido())) cliente.setApellido(dto.getApellido());
         if (tiene(dto.getTelefono())) cliente.setTelefono(dto.getTelefono());
@@ -118,5 +130,196 @@ public class ClienteService implements IClienteService {
         dto.setTelefono(c.getTelefono());
         dto.setEstado(c.getEstado());
         return dto;
+    }
+
+    @Transactional
+    public ClienteDTO actualizarMiPerfil(
+            Integer usuarioId,
+            ClienteDTO datos
+    ) {
+
+        // Buscar al cliente vinculado al usuario autenticado
+        Cliente cliente =
+                clienteRepository.findByUsuario_Id(usuarioId);
+
+        if (cliente == null ||
+                !Boolean.TRUE.equals(cliente.getEstado()) ||
+                !Boolean.TRUE.equals(cliente.getUsuario().getEstado()) ||
+                cliente.getUsuario().getRol() == null ||
+                !Integer.valueOf(2).equals(
+                        cliente.getUsuario().getRol().getId()
+                )) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No puede modificar este perfil"
+            );
+        }
+
+        // Obtener los datos modificados
+        String nombre = datos.getNombre();
+        String apellido = datos.getApellido();
+        String telefono = datos.getTelefono();
+
+        // Validar campos obligatorios
+        if (nombre == null || nombre.isBlank() ||
+                apellido == null || apellido.isBlank() ||
+                telefono == null || telefono.isBlank()) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Complete los campos obligatorios"
+            );
+        }
+
+        nombre = nombre.trim();
+        apellido = apellido.trim();
+        telefono = telefono.trim();
+
+        // Validar nombre y apellido
+        if (!nombre.matches("^[\\p{L} .'-]+$") ||
+                !apellido.matches("^[\\p{L} .'-]+$") ||
+                nombre.length() > 255 ||
+                apellido.length() > 255) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Nombre o apellido inválido"
+            );
+        }
+
+        // Validar teléfono peruano
+        if (!telefono.matches("^9\\d{8}$")) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El teléfono debe tener 9 dígitos"
+            );
+        }
+
+        Usuario usuario = cliente.getUsuario();
+
+        // Cambio opcional de contraseña
+        if (datos.getContrasena() != null &&
+                !datos.getContrasena().isBlank()) {
+
+            String nueva = datos.getContrasena();
+            String actual = datos.getContrasenaActual();
+
+            if (nueva.length() < 8 ||
+                    nueva.getBytes(
+                            java.nio.charset.StandardCharsets.UTF_8
+                    ).length > 72) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "La nueva contraseña debe tener entre 8 caracteres y 72 bytes"
+                );
+            }
+
+            if (actual == null || actual.isBlank()) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Ingrese su contraseña actual"
+                );
+            }
+
+            String guardada = usuario.getContrasena();
+
+            boolean esHash =
+                    guardada.startsWith("$2a$") ||
+                            guardada.startsWith("$2b$") ||
+                            guardada.startsWith("$2y$");
+
+            boolean correcta = esHash
+                    ? encoder.matches(actual, guardada)
+                    : guardada.equals(actual);
+
+            if (!correcta) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "La contraseña actual es incorrecta"
+                );
+            }
+
+            usuario.setContrasena(
+                    encoder.encode(nueva)
+            );
+
+            usuarioRepository.save(usuario);
+        }
+
+        // Actualizar los datos personales
+        cliente.setNombre(nombre);
+        cliente.setApellido(apellido);
+        cliente.setTelefono(telefono);
+
+        // Guardar los cambios en PostgreSQL
+        return convertir(clienteRepository.save(cliente));
+    }
+
+    @Transactional
+    public void eliminarMiCuenta(
+            Integer usuarioId,
+            String contrasenaActual
+    ) {
+
+        if (contrasenaActual == null ||
+                contrasenaActual.isBlank()) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Ingrese su contraseña actual"
+            );
+        }
+
+        // Buscar al cliente asociado a la sesión.
+        Cliente cliente =
+                clienteRepository.findByUsuario_Id(usuarioId);
+
+        if (cliente == null ||
+                !Boolean.TRUE.equals(cliente.getEstado()) ||
+                cliente.getUsuario() == null ||
+                !Boolean.TRUE.equals(cliente.getUsuario().getEstado()) ||
+                cliente.getUsuario().getRol() == null ||
+                !ROL_CLIENTE.equals(
+                        cliente.getUsuario().getRol().getId()
+                )) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "No puede eliminar esta cuenta"
+            );
+        }
+
+        Usuario usuario = cliente.getUsuario();
+
+        // Verificar la contraseña actual.
+        String guardada = usuario.getContrasena();
+
+        boolean esHash =
+                guardada.startsWith("$2a$") ||
+                        guardada.startsWith("$2b$") ||
+                        guardada.startsWith("$2y$");
+
+        boolean correcta = esHash
+                ? encoder.matches(contrasenaActual, guardada)
+                : guardada.equals(contrasenaActual);
+
+        if (!correcta) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La contraseña actual es incorrecta"
+            );
+        }
+
+        // Eliminación lógica del cliente y usuario.
+        cliente.setEstado(false);
+        usuario.setEstado(false);
+
+        clienteRepository.save(cliente);
+        usuarioRepository.save(usuario);
     }
 }

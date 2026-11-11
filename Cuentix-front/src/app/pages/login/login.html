@@ -1,0 +1,95 @@
+
+<div class="login-page">
+
+<!-- Barra superior -->
+<header class="topbar">
+    <div class="logo-small">
+    <span>✓</span>
+    </div>
+
+    <div class="header-actions">
+    <button
+        type="button"
+        class="header-link"
+        (click)="mostrarRegistro()">
+        Registrarse
+    </button>
+
+    <div class="avatar" aria-hidden="true"></div>
+    </div>
+</header>
+
+<!-- Contenido principal -->
+<main class="login-content">
+
+    @if (error) {
+    <div class="alert-error" role="alert">
+        {{ error }}
+    </div>
+    }
+
+    @if (aviso) {
+    <div class="alert-info" role="status">
+        {{ aviso }}
+    </div>
+    }
+
+    <!-- Logo principal -->
+    <div class="logo-big">
+    <span>✓</span>
+    </div>
+
+    <h1>Iniciar Sesión</h1>
+
+    <!-- Formulario -->
+    <form
+    class="login-form"
+    (ngSubmit)="iniciarSesion()"
+    novalidate>
+
+    <div class="form-group">
+        <label for="codigo">DNI / RUC</label>
+        <input
+        id="codigo"
+        name="codigo"
+        type="text"
+        [(ngModel)]="codigo"
+        maxlength="11"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        autocomplete="username"
+        placeholder="Ingrese su DNI o RUC"
+        required
+        />
+    </div>
+
+    <div class="form-group">
+        <label for="contrasena">Contraseña</label>
+        <input
+        id="contrasena"
+        name="contrasena"
+        type="password"
+        [(ngModel)]="contrasena"
+        autocomplete="current-password"
+        required
+        />
+    </div>
+
+    <button type="submit" class="btn-login" [disabled]="cargando">
+    {{ cargando ? 'VALIDANDO...' : 'INGRESAR' }}
+    </button>
+    </form>
+
+    <p class="register-text">
+    ¿No tienes una cuenta?
+    <button
+        type="button"
+        class="register-link"
+        (click)="mostrarRegistro()">
+        Regístrate
+    </button>
+    </p>
+
+</main>
+</div>
+

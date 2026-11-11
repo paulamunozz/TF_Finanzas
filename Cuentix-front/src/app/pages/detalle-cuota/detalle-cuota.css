@@ -1,0 +1,175 @@
+
+:host {
+  display: block;
+  width: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* CONTENEDOR */
+
+.detalle-cuota-contenedor {
+  width: 100%;
+  min-height: calc(100vh - 55px);
+  background-color: #ffffff;
+}
+
+/* ENCABEZADO */
+
+.encabezado-detalle {
+  background-color: #3049c8;
+  color: white;
+  padding: 13px 20px;
+
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.encabezado-detalle h1 {
+  font-size: 18px;
+  font-weight: 500;
+  color: white;
+  margin: 0;
+}
+
+.enlace-volver {
+  color: white;
+  text-decoration: none;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.enlace-volver:hover {
+  text-decoration: underline;
+}
+
+/* TABLAS */
+
+.tabla-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tabla-cuota,
+.tabla-productos {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  font-size: 13px;
+}
+
+/* ENCABEZADOS */
+
+.tabla-cuota thead,
+.tabla-productos thead {
+  background-color: #8094fa;
+}
+
+.tabla-cuota th,
+.tabla-productos th {
+  color: white;
+  padding: 16px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* CELDAS */
+
+.tabla-cuota td,
+.tabla-productos td {
+  padding: 15px 10px;
+  text-align: center;
+  border-bottom: 1px solid #d3d3d3;
+  color: #222;
+}
+
+.tabla-cuota tbody tr:hover,
+.tabla-productos tbody tr:hover {
+  background-color: #f4f6ff;
+}
+
+/* MORA */
+
+.mora-roja {
+  color: #ff3b30;
+  font-weight: 500;
+}
+
+.mora-verde {
+  color: #20a86b;
+  font-weight: 500;
+}
+
+/* CANCELACIÓN */
+
+.estado-cancelado {
+  color: #20a86b;
+  font-weight: 600;
+}
+
+.estado-pendiente {
+  color: #ff3b30;
+  font-weight: 600;
+}
+
+/* TOTAL */
+
+.total-destacado {
+  font-weight: bold;
+}
+
+/* PRODUCTOS */
+
+.seccion-productos {
+  margin-top: 25px;
+}
+
+.titulo-productos {
+  background-color: #8094fa;
+  color: white;
+  padding: 15px 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tabla-productos th:first-child,
+.tabla-productos td:first-child {
+  text-align: left;
+  padding-left: 25px;
+}
+
+/* MENSAJES */
+
+.mensaje-tabla {
+  padding: 35px 20px !important;
+  text-align: center !important;
+  color: #666 !important;
+  font-size: 13px;
+}
+
+.mensaje-error {
+  color: #c62828 !important;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+
+  .tabla-cuota {
+    min-width: 1050px;
+  }
+
+  .tabla-productos {
+    min-width: 450px;
+  }
+
+  .encabezado-detalle {
+    flex-wrap: wrap;
+  }
+
+  .encabezado-detalle h1 {
+    font-size: 15px;
+  }
+}

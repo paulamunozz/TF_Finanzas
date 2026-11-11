@@ -11,6 +11,11 @@ import com.upc.cuentix.repositories.ICuentaCreditoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.upc.cuentix.dto.AcuerdoClienteDTO;
+import com.upc.cuentix.entities.Tasa;
+import com.upc.cuentix.repositories.TasaRepository;
+
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +23,9 @@ import java.util.stream.Collectors;
 public class CuentaCreditoService implements ICuentaCreditoService {
     @Autowired
     private ICuentaCreditoRepository cuentaCreditoRepository;
+
+    @Autowired
+    private TasaRepository tasaRepository;
 
     @Override
     public CuentaCreditoDTO registrar(CuentaCreditoDTO dto) {
@@ -94,5 +102,63 @@ public class CuentaCreditoService implements ICuentaCreditoService {
         dto.setNegocioId(cuenta.getNegocio() != null ? cuenta.getNegocio().getId() : null);
         dto.setClienteId(cuenta.getCliente() != null ? cuenta.getCliente().getId() : null);
         return dto;
+    }
+
+    public List<AcuerdoClienteDTO> acuerdosDelCliente(
+            Integer usuarioId
+    ) {
+
+        return cuentaCreditoRepository
+                .findAllByCliente_Usuario_IdAndEstadoTrue(usuarioId)
+                .stream()
+                .filter(cc ->
+                        cc.getCliente() != null &&
+                                Boolean.TRUE.equals(cc.getCliente().getEstado()) &&
+                                cc.getCliente().getUsuario() != null &&
+                                Boolean.TRUE.equals(
+                                        cc.getCliente().getUsuario().getEstado()
+                                ) &&
+                                cc.getNegocio() != null &&
+                                Boolean.TRUE.equals(cc.getNegocio().getEstado())
+                )
+                .map(cc -> {
+
+                    Tasa tasa = tasaRepository
+                            .getTasaByCuentaCredito_IdAndNomrmalMoratoria(
+                                    cc.getId(),
+                                    false
+                            );
+
+                    Double porcentaje = tasa != null
+                            ? tasa.getPorcentaje() * 100
+                            : null;
+
+                    String tipoTasa = "No especificada";
+
+                    if (tasa != null) {
+                        if (Boolean.TRUE.equals(tasa.getNominalEfectiva())
+                                && Double.valueOf(360).equals(
+                                tasa.getPeriodicidad())) {
+                            tipoTasa = "TEA";
+                        } else {
+                            tipoTasa = "Otra periodicidad";
+                        }
+                    }
+
+                    return new AcuerdoClienteDTO(
+                            cc.getId(),
+                            cc.getNegocio().getRazonSocial(),
+                            porcentaje,
+                            tipoTasa,
+                            cc.getLimite(),
+                            cc.getMoneda() != null
+                                    ? cc.getMoneda().getSimbolo()
+                                    : "",
+                            cc.getMaxMeses(),
+                            cc.getDiaCorte(),
+                            cc.getDiaPago()
+                    );
+                })
+                .toList();
     }
 }

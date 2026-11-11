@@ -1,0 +1,142 @@
+
+:host {
+  display: block;
+  width: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.reporte-contenedor {
+  width: 100%;
+  background-color: white;
+  padding: 0;
+}
+
+.tabla-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tabla-reporte {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background-color: white;
+}
+
+/* ENCABEZADOS */
+
+.tabla-reporte thead {
+  background-color: #8094fa;
+}
+
+.tabla-reporte th {
+  color: white;
+  padding: 16px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* FILAS */
+
+.tabla-reporte td {
+  padding: 15px 12px;
+  text-align: center;
+  color: #222;
+  border-bottom: 1px solid #d3d3d3;
+}
+
+.tabla-reporte tbody tr:hover {
+  background-color: #f4f6ff;
+}
+
+.tabla-reporte td:first-child {
+  text-align: left;
+  padding-left: 20px;
+}
+
+/* ESTADOS DE MORA */
+
+.mora-roja {
+  color: #ff3b30;
+  font-weight: 500;
+}
+
+.mora-verde {
+  color: #20a86b;
+  font-weight: 500;
+}
+
+/* BOTÓN DETALLE */
+
+.boton-detalle {
+  background-color: #3049c8;
+  color: white;
+  border: none;
+  padding: 9px 25px;
+  border-radius: 2px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.boton-detalle:hover:not(:disabled) {
+  background-color: #2138a9;
+}
+
+.boton-detalle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* TOTAL */
+
+.tabla-reporte tfoot {
+  background-color: #f9f9f9;
+}
+
+.tabla-reporte tfoot td {
+  border-top: 1px solid #bbb;
+  font-weight: 600;
+  padding: 15px 12px;
+}
+
+.tabla-reporte tfoot .total-texto {
+  text-align: left;
+  padding-left: 20px;
+}
+
+.tabla-reporte tfoot .total-valor {
+  text-align: center;
+}
+
+/* MENSAJES */
+
+.tabla-reporte .mensaje-tabla {
+  text-align: center !important;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.tabla-reporte .mensaje-error {
+  color: #c62828;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+
+  .tabla-reporte {
+    min-width: 750px;
+    font-size: 12px;
+  }
+
+  .tabla-reporte th {
+    font-size: 12px;
+  }
+
+  .tabla-reporte td {
+    padding: 12px 8px;
+  }
+}

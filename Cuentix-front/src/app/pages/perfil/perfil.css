@@ -1,0 +1,138 @@
+
+:host {
+  display: block;
+  width: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* FONDO DE LA PANTALLA */
+
+.perfil-contenedor {
+  width: 100%;
+  min-height: calc(100vh - 55px);
+  background-color: #9ba8e5;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 30px 20px;
+}
+
+/* TARJETA AZUL */
+
+.tarjeta-perfil {
+  background-color: #3049c8;
+  border-radius: 3px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+
+  padding: 28px 30px;
+  width: 100%;
+  max-width: 520px;
+}
+
+/* DATOS DEL CLIENTE */
+
+.datos-cliente {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+.fila-dato {
+  display: grid;
+  grid-template-columns: 85px 1fr;
+  align-items: center;
+  gap: 12px;
+
+  color: white;
+  font-size: 13px;
+}
+
+.etiqueta {
+  font-weight: bold;
+}
+
+.valor {
+  font-weight: normal;
+  overflow-wrap: anywhere;
+}
+
+.pendiente {
+  color: #d9e0ff;
+  font-size: 12px;
+}
+
+/* BOTONES */
+
+.acciones-perfil {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.acciones-perfil button {
+  width: 125px;
+  padding: 12px 10px;
+  border: none;
+  border-radius: 3px;
+
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* EDITAR DATOS */
+
+.boton-editar {
+  background-color: #8094fa;
+  color: white;
+}
+
+.boton-editar:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* CERRAR SESIÓN */
+
+.boton-cerrar {
+  background-color: #eeeeee;
+  color: #222;
+}
+
+.boton-cerrar:hover {
+  background-color: #d5d5d5;
+}
+
+/* ADAPTACIÓN A MÓVILES */
+
+@media (max-width: 600px) {
+
+  .tarjeta-perfil {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 25px;
+    padding: 25px 20px;
+  }
+
+  .fila-dato {
+    grid-template-columns: 75px 1fr;
+  }
+
+  .acciones-perfil {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .acciones-perfil button {
+    width: auto;
+    min-width: 120px;
+  }
+
+}

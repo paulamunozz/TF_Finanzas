@@ -1,0 +1,200 @@
+
+<div class="detalle-cuota-contenedor">
+
+  <!-- ENCABEZADO -->
+  <div class="encabezado-detalle">
+
+    <a
+      routerLink="/cliente/reporte/detalle"
+      class="enlace-volver">
+      ← Reporte de pago
+    </a>
+
+    <h1>
+      Detalle de cuota
+      @if (nombreTienda) {
+        - {{ nombreTienda }}
+      }
+    </h1>
+
+  </div>
+
+  <!-- TABLA DE CUOTA -->
+  <div class="tabla-responsive">
+
+    <table class="tabla-cuota">
+
+      <thead>
+        <tr>
+          <th>F. Compra</th>
+          <th>Núm. Cuota</th>
+          <th>F. Vencimiento</th>
+          <th>Interés</th>
+          <th>Amortización</th>
+          <th>Cuota</th>
+          <th>Mora</th>
+          <th>Cancelado</th>
+          <th>Total a pagar</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        @if (cargando) {
+
+          <tr>
+            <td colspan="9" class="mensaje-tabla">
+              Cargando detalle de cuota...
+            </td>
+          </tr>
+
+        } @else if (error) {
+
+          <tr>
+            <td colspan="9" class="mensaje-tabla mensaje-error">
+              {{ error }}
+            </td>
+          </tr>
+
+        } @else if (detalle; as cuota) {
+
+          <tr>
+
+            <td>{{ cuota.fechaCompra }}</td>
+
+            <td>{{ cuota.numeroCuota }}</td>
+
+            <td>{{ cuota.fechaVencimiento }}</td>
+
+            <td>
+              S/ {{ cuota.interes.toFixed(2) }}
+            </td>
+
+            <td>
+              S/ {{ cuota.amortizacion.toFixed(2) }}
+            </td>
+
+            <td>
+              S/ {{ cuota.cuota.toFixed(2) }}
+            </td>
+
+            <td>
+              <span
+                [class.mora-roja]="cuota.mora > 0"
+                [class.mora-verde]="cuota.mora === 0">
+
+                @if (cuota.mora > 0) {
+                  S/ {{ cuota.mora.toFixed(2) }}
+                } @else {
+                  Al día
+                }
+
+              </span>
+            </td>
+
+            <td>
+              <span
+                [class.estado-cancelado]="cuota.cancelado"
+                [class.estado-pendiente]="!cuota.cancelado">
+
+                {{ cuota.cancelado ? 'Sí' : 'No' }}
+
+              </span>
+            </td>
+
+            <td class="total-destacado">
+              S/ {{ cuota.totalPagar.toFixed(2) }}
+            </td>
+
+          </tr>
+
+        } @else {
+
+          <tr>
+            <td colspan="9" class="mensaje-tabla">
+              Aún no hay información de esta cuota disponible.
+            </td>
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+  <!-- PRODUCTOS COMPRADOS -->
+  <div class="seccion-productos">
+
+    <div class="titulo-productos">
+      Productos comprados
+    </div>
+
+    <div class="tabla-responsive">
+
+      <table class="tabla-productos">
+
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Unidad</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          @if (detalle; as cuota) {
+
+            @for (
+              producto of cuota.productos;
+              track producto.id
+            ) {
+
+              <tr>
+
+                <td>
+                  {{ producto.nombre }}
+                </td>
+
+                <td>
+                  {{ producto.cantidad }}
+                </td>
+
+                <td>
+                  {{ producto.unidad }}
+                </td>
+
+              </tr>
+
+            } @empty {
+
+              <tr>
+                <td colspan="3" class="mensaje-tabla">
+                  No hay productos asociados a esta cuota.
+                </td>
+              </tr>
+
+            }
+
+          } @else {
+
+            <tr>
+              <td colspan="3" class="mensaje-tabla">
+                Aún no hay información de productos disponible.
+              </td>
+            </tr>
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+

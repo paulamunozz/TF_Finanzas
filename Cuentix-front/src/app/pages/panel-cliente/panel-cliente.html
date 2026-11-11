@@ -1,0 +1,47 @@
+
+<div class="panel-cliente">
+
+<!-- Barra de navegación -->
+<header class="barra-superior">
+
+    <!-- Logo Cuentix -->
+    <div class="marca">
+    <div class="logo">✓</div>
+    <span>Cuentix</span>
+    </div>
+
+    <!-- Opciones de navegación -->
+    <nav class="menu">
+
+    <a
+        routerLink="/cliente/reporte"
+        routerLinkActive="activo">
+        Reporte
+    </a>
+
+    <a
+        routerLink="/cliente/acuerdos"
+        routerLinkActive="activo">
+        Acuerdos
+    </a>
+
+    <a
+        routerLink="/cliente/perfil"
+        routerLinkActive="activo"
+        class="perfil-boton"
+        aria-label="Mi perfil"
+        title="Mi perfil">
+
+        <span class="perfil-icono">●</span>
+    </a>
+
+    </nav>
+
+</header>
+
+<!-- Aquí se mostrarán las pantallas -->
+<main class="contenido">
+    <router-outlet></router-outlet>
+</main>
+
+</div>
