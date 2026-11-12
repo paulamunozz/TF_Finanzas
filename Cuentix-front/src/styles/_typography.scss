@@ -1,0 +1,56 @@
+:root {
+  --ds-font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
+  --ds-font-heading: 'Poppins', system-ui, sans-serif;
+}
+
+html {
+  font-size: 16px;
+}
+
+body,
+button,
+input,
+select,
+textarea,
+.mat-typography {
+  font-family: var(--ds-font-family);
+  font-size: var(--ds-font-size-md);
+  line-height: var(--ds-line-height-normal);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--ds-font-heading);
+  color: var(--ds-foreground);
+  font-weight: var(--ds-font-weight-semibold);
+  line-height: var(--ds-line-height-tight);
+}
+
+h1 {
+  font-size: var(--ds-font-size-2xl);
+}
+
+h2 {
+  font-size: var(--ds-font-size-xl);
+}
+
+h3 {
+  font-size: var(--ds-font-size-lg);
+}
+
+small,
+.text-muted {
+  color: var(--ds-muted);
+  font-size: var(--ds-font-size-sm);
+}
+
+button,
+.mat-mdc-button,
+.mat-mdc-unelevated-button {
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: 0;
+}

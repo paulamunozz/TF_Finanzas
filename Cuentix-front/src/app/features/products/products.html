@@ -1,0 +1,70 @@
+<section class="products">
+  @if (pendingDelete(); as id) {
+    <div class="delete-confirm" role="alert">
+      <span>¿Eliminar este producto del catálogo de la sesión?</span
+      ><button mat-button (click)="pendingDelete.set(null)">Cancelar</button
+      ><button mat-button (click)="remove(id); pendingDelete.set(null)">Eliminar</button>
+    </div>
+  }
+  <app-page-header
+    title="Mis productos"
+    description="Administra el catálogo comercial de Bodega Mariela."
+    ><button mat-flat-button type="button" (click)="showForm.set(!showForm())">
+      Nuevo producto
+    </button></app-page-header
+  >
+  @if (showForm()) {
+    <form (ngSubmit)="add()">
+      <label>Nombre<input name="name" [(ngModel)]="draft.name" required /></label
+      ><label>Unidad<input name="unit" [(ngModel)]="draft.unit" required /></label
+      ><label
+        >Precio contado<input
+          name="cash"
+          [(ngModel)]="draft.cashPrice"
+          type="number"
+          min="0.01"
+          required /></label
+      ><label
+        >Precio a crédito<input
+          name="credit"
+          [(ngModel)]="draft.creditPrice"
+          type="number"
+          min="0.01"
+          required /></label
+      ><button mat-flat-button>Guardar producto</button>
+    </form>
+  }
+  <div class="toolbar">
+    <label
+      ><span>Buscar</span
+      ><input
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+        placeholder="Nombre del producto" /></label
+    ><span>{{ filtered().length }} productos</span>
+  </div>
+  <div class="table">
+    <div class="row head">
+      <b>Producto</b><b>Unidad</b><b>Precio contado</b><b>Precio crédito</b><b></b>
+    </div>
+    @for (product of filtered(); track product.id) {
+      <div class="row">
+        <span
+          ><b>{{ product.name }}</b
+          ><small>ID {{ product.id }}</small></span
+        ><span>{{ product.unit }}</span
+        ><span>{{ product.cashPrice | currency: 'PEN' : 'S/ ' }}</span
+        ><span>{{ product.creditPrice | currency: 'PEN' : 'S/ ' }}</span>
+        <details class="product-actions">
+          <summary [attr.aria-label]="'Acciones de ' + product.name">⋯</summary>
+          <div>
+            <button type="button" (click)="edit(product)">Editar producto</button
+            ><button type="button" (click)="requestRemove(product.id)">Eliminar producto</button>
+          </div>
+        </details>
+      </div>
+    } @empty {
+      <p class="empty">No se encontraron productos.</p>
+    }
+  </div>
+</section>

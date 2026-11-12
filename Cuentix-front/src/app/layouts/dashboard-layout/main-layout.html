@@ -1,0 +1,55 @@
+<div class="app-shell" [class.collapsed]="collapsed()">
+  <aside class="sidebar" [class.open]="menuOpen()">
+    <a class="brand" routerLink="/dashboard" (click)="closeMenu()"
+      ><span class="brand-mark">C</span><span>Cuentix</span></a
+    >
+    <div class="business">
+      <span class="business-avatar">BM</span
+      ><span><b>Bodega Mariela</b><small>Negocio activo</small></span>
+    </div>
+    <button
+      class="collapse-button"
+      type="button"
+      (click)="collapsed.set(!collapsed())"
+      [attr.aria-expanded]="!collapsed()"
+    >
+      {{ collapsed() ? 'Expandir menú' : 'Contraer menú' }}
+    </button>
+    <nav aria-label="Navegación principal">
+      <p>Principal</p>
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()"
+        ><span>⌂</span>Dashboard</a
+      >
+      <a routerLink="/clients" routerLinkActive="active" (click)="closeMenu()"
+        ><span>◎</span>Mis clientes</a
+      >
+      <a routerLink="/purchases/history" routerLinkActive="active" (click)="closeMenu()"
+        ><span>▣</span>Mis compras</a
+      >
+      <a routerLink="/products" routerLinkActive="active" (click)="closeMenu()"
+        ><span>◇</span>Mis productos</a
+      >
+      <p>Finanzas</p>
+      <a routerLink="/clients" routerLinkActive="active" (click)="closeMenu()"
+        ><span>≋</span>Cronogramas</a
+      >
+    </nav>
+    <div class="sidebar-foot">
+      <span class="user-avatar">MT</span
+      ><span><b>Mariela Torres</b><small>Administradora</small></span>
+    </div>
+  </aside>
+  @if (menuOpen()) {
+    <button class="backdrop" type="button" aria-label="Cerrar menú" (click)="closeMenu()"></button>
+  }
+  <div class="workspace">
+    <header class="topbar">
+      <button class="menu-button" type="button" aria-label="Abrir menú" (click)="toggleMenu()">
+        ☰
+      </button>
+      <div><small>CUENTIX</small><b>Gestión financiera comercial</b></div>
+      <span class="context-business">Bodega Mariela</span>
+    </header>
+    <main class="content"><router-outlet /></main>
+  </div>
+</div>

@@ -1,0 +1,193 @@
+<section class="schedule">
+  @if (state(); as result) {
+    @if (result.data; as data) {
+      <app-page-header
+        [title]="purchaseId ? 'Cronograma · ' + purchaseId : 'Cronograma de pagos'"
+        [description]="'Obligaciones financieras de ' + data.client.name"
+        ><a
+          mat-stroked-button
+          [routerLink]="purchaseId ? ['/clients', data.client.id, 'payments'] : ['/clients']"
+          >{{
+            purchaseId
+              ? 'Cronograma del
+      cliente'
+              : 'Volver a clientes'
+          }}</a
+        ></app-page-header
+      >
+      <div class="account-context">
+        <b>{{ data.client.name }}</b
+        ><span>DNI {{ data.client.dni }}</span
+        ><span>Bodega Mariela</span><span>{{ data.client.currency }}</span>
+      </div>
+      @if (purchaseId) {
+        @for (purchase of data.purchases; track purchase.id) {
+          <div class="purchase-context">
+            <span
+              ><small>Cuenta</small><b>{{ purchase.accountId }}</b></span
+            ><span
+              ><small>Fecha de compra</small
+              ><b>{{ purchase.purchaseDate | date: 'dd/MM/yyyy' }}</b></span
+            ><span
+              ><small>Modalidad</small
+              ><b
+                >{{
+                  purchase.mode === 'single'
+                    ? 'Pago
+        único'
+                    : 'Cuotas mensuales'
+                }}
+                · {{ purchase.installments }} cuota(s)</b
+              ></span
+            ><span
+              ><small>Principal financiado</small
+              ><b>{{ purchase.principal | currency: purchase.currency }}</b></span
+            ><span
+              ><small>Gracia capitalizada, ya incluida</small
+              ><b>{{ purchase.graceInterest | currency: purchase.currency }}</b></span
+            ><span
+              ><small>Interés de cuotas</small
+              ><b>{{ summary().interest | currency: purchase.currency }}</b></span
+            ><a mat-button routerLink="/purchases/history">Volver a compras</a>
+          </div>
+        }
+      }
+      <div class="schedule-metrics">
+        <article>
+          <span>Total programado</span
+          ><strong>{{ summary().scheduled | currency: data.client.currency }}</strong
+          ><small>Cuotas sin mora</small>
+        </article>
+        <article>
+          <span>Total cancelado</span
+          ><strong>{{ summary().paid | currency: data.client.currency }}</strong
+          ><small>Incluye mora pagada</small>
+        </article>
+        <article>
+          <span>Total pendiente</span
+          ><strong>{{ summary().pending | currency: data.client.currency }}</strong
+          ><small>Cuotas pendientes + mora</small>
+        </article>
+        <article>
+          <span>Mora exigible</span
+          ><strong>{{ summary().late | currency: data.client.currency }}</strong
+          ><small>Sin capitalización</small>
+        </article>
+        <article>
+          <span>Cuotas vencidas</span><strong>{{ summary().overdue }}</strong
+          ><small>Obligaciones sin cancelar</small>
+        </article>
+      </div>
+      <div class="table-toolbar">
+        @if (!purchaseId) {
+          <label
+            >Compra<select
+              [ngModel]="purchaseFilter()"
+              (ngModelChange)="purchaseFilter.set($event)"
+            >
+              <option value="">Todas las compras</option>
+              @for (purchase of data.purchases; track purchase.id) {
+                <option [value]="purchase.id">{{ purchase.id }}</option>
+              }
+            </select></label
+          >
+        }
+        <label
+          >Estado<select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+            <option value="">Todos</option>
+            <option value="pending">Pendiente</option>
+            <option value="overdue">Vencida</option>
+            <option value="paid">Cancelada</option>
+          </select></label
+        ><label
+          >Desde<input type="date" [ngModel]="from()" (ngModelChange)="from.set($event)" /></label
+        ><label>Hasta<input type="date" [ngModel]="to()" (ngModelChange)="to.set($event)" /></label
+        ><label
+          >Orden<select [ngModel]="order()" (ngModelChange)="order.set($event)">
+            <option value="date">Vencimiento</option>
+            <option value="amount">Mayor importe</option>
+            <option value="status">Estado</option>
+          </select></label
+        >
+      </div>
+      <div class="schedule-table">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Compra / Cuota</th>
+              <th>Compra</th>
+              <th>Vencimiento</th>
+              @if (purchaseId) {
+                <th>Interés</th>
+                <th>Amortización</th>
+              }
+              <th>Programada</th>
+              <th>Mora</th>
+              <th>Total obligación</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of rows(); track item.id) {
+              <tr>
+                <td data-label="Compra / Cuota">
+                  <a [routerLink]="['/purchases', item.purchaseId, 'schedule']">{{
+                    item.purchaseId
+                  }}</a
+                  ><small>{{ item.number }} / {{ item.totalInstallments }}</small>
+                </td>
+                <td data-label="Fecha compra">{{ item.purchaseDate | date: 'dd/MM/yyyy' }}</td>
+                <td data-label="Vencimiento">{{ item.dueDate | date: 'dd/MM/yyyy' }}</td>
+                @if (purchaseId) {
+                  <td data-label="Interés">
+                    {{ item.interest | currency: data.client.currency }}
+                  </td>
+                  <td data-label="Amortización">
+                    {{ item.amortization | currency: data.client.currency }}
+                  </td>
+                }
+                <td data-label="Programada">
+                  {{ item.installmentAmount | currency: data.client.currency }}
+                </td>
+                <td data-label="Mora">{{ item.lateAmount | currency: data.client.currency }}</td>
+                <td data-label="Total obligación">
+                  <b>{{
+                    item.installmentAmount + item.lateAmount | currency: data.client.currency
+                  }}</b>
+                </td>
+                <td data-label="Estado">
+                  <span class="status-badge" [class]="'status-badge ' + status(item)">{{
+                    labels[status(item)]
+                  }}</span>
+                </td>
+                <td data-label="Acciones">
+                  <div class="schedule-actions">
+                    <a mat-button [routerLink]="['/installments', item.id]">Detalle</a>
+                    @if (!item.cancelled) {
+                      <button mat-stroked-button (click)="pay(item)">Registrar pago</button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="10" class="empty">No hay cuotas que coincidan con los filtros.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="schedule-note">
+        {{ rows().length }} cuotas · Los indicadores corresponden al cronograma completo. Las
+        obligaciones canceladas conservan su importe histórico.
+      </p>
+    } @else {
+      <div class="empty" role="alert">
+        {{ result.error }} <a routerLink="/clients">Volver a clientes</a>
+      </div>
+    }
+  } @else {
+    <div class="loading-state" role="status">Cargando cronograma…</div>
+  }
+</section>
