@@ -1,0 +1,235 @@
+:root {
+  --ds-primary-subtle: #eff6ff;
+  --ds-success: #059669;
+  --ds-warning: #d97706;
+  --ds-control-height: 44px;
+}
+.product-actions {
+  position: relative;
+  justify-self: end;
+}
+.product-actions summary {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 22px;
+}
+.product-actions summary:hover {
+  background: var(--ds-surface-muted);
+}
+.product-actions > div {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  z-index: 5;
+  display: grid;
+  min-width: 170px;
+  padding: 8px;
+  border: 1px solid var(--ds-border);
+  border-radius: 10px;
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-md);
+}
+.product-actions button {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px;
+  text-align: left;
+  font-size: 13px;
+}
+.delete-confirm {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 20px;
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+  background: var(--ds-surface);
+}
+.delete-confirm span {
+  flex: 1;
+  font-size: 14px;
+}
+body {
+  font-size: 14px;
+}
+h1 {
+  letter-spacing: -0.035em;
+}
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+strong,
+.numeric,
+.amount {
+  font-variant-numeric: tabular-nums;
+}
+.mat-mdc-button-base {
+  border-radius: 8px !important;
+}
+.table-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  padding: 18px 20px;
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: 12px;
+}
+.table-toolbar label {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ds-muted);
+}
+.search-control {
+  flex: 1;
+}
+.table-toolbar input,
+.table-toolbar select {
+  height: 44px;
+  padding: 0 12px;
+  background: var(--ds-surface);
+  color: var(--ds-foreground);
+  border: 1px solid var(--ds-input);
+  border-radius: 8px;
+  font-size: 14px;
+  min-width: 0;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+  font-size: 14px;
+}
+.data-table th {
+  padding: 16px 20px;
+  text-align: left;
+  background: var(--ds-background);
+  color: var(--ds-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.data-table td {
+  padding: 18px 20px;
+  border-top: 1px solid var(--ds-border);
+}
+.data-table tbody tr:hover {
+  background: var(--ds-background);
+}
+.data-table b {
+  font-weight: 600;
+}
+.data-table small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ds-muted);
+  font-size: 12px;
+}
+.data-table .numeric {
+  text-align: right;
+}
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ds-primary-subtle);
+  color: var(--ds-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-top: 1px solid var(--ds-border);
+  color: var(--ds-muted);
+  font-size: 12px;
+}
+.table-footer > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.loading-state {
+  min-height: 200px;
+  padding: 40px;
+  border-radius: 12px;
+  background: var(--ds-surface);
+  color: var(--ds-muted);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+.context-business {
+  margin-left: auto;
+  padding: 7px 12px;
+  border: 1px solid var(--ds-border);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--ds-muted);
+}
+.collapse-button {
+  margin: 0 10px 4px;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--ds-background);
+  color: var(--ds-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+@media (min-width: 851px) {
+  .app-shell.collapsed {
+    grid-template-columns: 190px 1fr;
+  }
+  .collapsed .sidebar {
+    padding-inline: 10px;
+  }
+  .collapsed .business {
+    display: none;
+  }
+  .collapsed .brand {
+    margin-bottom: 24px;
+  }
+}
+@media (max-width: 600px) {
+  .table-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .table-toolbar label {
+    width: 100%;
+  }
+  .table-footer {
+    align-items: start;
+    gap: 12px;
+    flex-direction: column;
+  }
+  .context-business {
+    display: none;
+  }
+}

@@ -1,0 +1,109 @@
+<section class="dashboard">
+  <app-page-header title="Resumen financiero" description="Tu cartera comercial, en un solo lugar."
+    ><a mat-flat-button routerLink="/purchases">＋ Registrar compra</a></app-page-header
+  >
+  @if (data(); as state) {
+    <div class="metrics">
+      <article>
+        <span class="metric-icon">◎</span>
+        <p>Clientes registrados</p>
+        <strong>{{ state.clients.length }}</strong
+        ><small>Cuentas del negocio</small>
+      </article>
+      <article>
+        <span class="metric-icon">≋</span>
+        <p>Pendiente de cobro · PEN</p>
+        <strong>{{ pending() | currency: 'PEN' : 'S/ ' }}</strong
+        ><small>Cuotas pendientes, incluida mora registrada</small>
+      </article>
+      <article>
+        <span class="metric-icon">◷</span>
+        <p>Cuotas vencidas</p>
+        <strong>{{ overdue().length }}</strong
+        ><small>Obligaciones pendientes de atención</small>
+      </article>
+      <article>
+        <span class="metric-icon">✓</span>
+        <p>Cuotas canceladas</p>
+        <strong>{{ paid().length }}</strong
+        ><small>Pagos completos registrados</small>
+      </article>
+    </div>
+    <div class="overview">
+      <article class="card">
+        <header>
+          <div>
+            <h2>Estado de cobranza</h2>
+            <p>Distribución de {{ state.items.length }} cuotas registradas</p>
+          </div>
+          <a routerLink="/clients">Consultar cuentas →</a>
+        </header>
+        <div class="distribution">
+          @for (status of statuses(); track status.label) {
+            <span
+              [style.flex-grow]="status.count"
+              [style.background]="status.color"
+              [attr.title]="status.label + ': ' + status.count"
+            ></span>
+          }
+        </div>
+        <div class="status-grid">
+          @for (status of statuses(); track status.label) {
+            <div>
+              <span class="status-label"
+                ><i [style.background]="status.color"></i>{{ status.label }}</span
+              ><strong>{{ status.count }}</strong
+              ><small
+                >{{
+                  state.items.length ? ((status.count / state.items.length) * 100).toFixed(0) : 0
+                }}% del total</small
+              >
+            </div>
+          }
+        </div>
+      </article>
+      <article class="card">
+        <header>
+          <div>
+            <h2>Próximos vencimientos</h2>
+            <p>Cuotas pendientes ordenadas por fecha</p>
+          </div>
+        </header>
+        @for (item of upcoming(); track item.id) {
+          <a class="due-row" [routerLink]="['/installments', item.id]"
+            ><span class="avatar">{{ item.clientName.slice(0, 2).toUpperCase() }}</span
+            ><span
+              ><b>{{ item.clientName }}</b
+              ><small>{{ item.dueDate | date: 'dd/MM/yyyy' }}</small></span
+            ><strong>{{
+              item.installmentAmount + item.lateAmount | currency: 'PEN' : 'S/ '
+            }}</strong
+            ><span aria-hidden="true">→</span></a
+          >
+        } @empty {
+          <p class="empty">No hay próximos vencimientos.</p>
+        }
+      </article>
+    </div>
+  } @else {
+    <div class="loading-state" role="status">Cargando información financiera…</div>
+  }
+  <section class="card">
+    <h2>Acciones rápidas</h2>
+    <div class="quick-grid">
+      <a routerLink="/clients/new"
+        ><span class="metric-icon">＋</span
+        ><span><b>Nuevo cliente</b><small>Configura sus condiciones crediticias</small></span
+        ><span>→</span></a
+      ><a routerLink="/purchases"
+        ><span class="metric-icon">▣</span
+        ><span><b>Registrar compra</b><small>Selecciona productos y financiamiento</small></span
+        ><span>→</span></a
+      ><a routerLink="/products"
+        ><span class="metric-icon">◇</span
+        ><span><b>Gestionar productos</b><small>Consulta precios y catálogo</small></span
+        ><span>→</span></a
+      >
+    </div>
+  </section>
+</section>

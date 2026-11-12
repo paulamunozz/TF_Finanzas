@@ -1,0 +1,50 @@
+<section class="history">
+  <app-page-header
+    title="Compras financiadas"
+    description="Consulta las compras de origen y sus cronogramas."
+    ><a mat-flat-button routerLink="/purchases">Registrar compra</a></app-page-header
+  >
+  <div class="history-table">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Compra / Cuenta</th>
+          <th>Cliente</th>
+          <th>Fecha</th>
+          <th>Principal</th>
+          <th>Modalidad</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (purchase of purchases(); track purchase.id) {
+          <tr>
+            <td>
+              <b>{{ purchase.id }}</b
+              ><small>{{ purchase.accountId }}</small>
+            </td>
+            <td>
+              <a [routerLink]="['/clients', purchase.clientId, 'payments']">{{
+                purchase.clientId
+              }}</a>
+            </td>
+            <td>{{ purchase.purchaseDate | date: 'dd/MM/yyyy' }}</td>
+            <td>{{ purchase.principal | currency: purchase.currency }}</td>
+            <td>
+              {{ purchase.mode === 'single' ? 'Pago único' : purchase.installments + ' cuotas' }}
+            </td>
+            <td>
+              <a mat-button [routerLink]="['/purchases', purchase.id, 'schedule']"
+                >Ver cronograma</a
+              >
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6">No hay compras registradas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

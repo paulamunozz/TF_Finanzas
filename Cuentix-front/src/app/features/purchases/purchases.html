@@ -1,0 +1,131 @@
+<section class="purchase">
+  <app-page-header
+    title="Registrar compra"
+    description="Crea una compra financiada y valida las condiciones antes de confirmar."
+    ><a mat-stroked-button routerLink="/purchases/history"
+      >Ver compras y cronogramas</a
+    ></app-page-header
+  >
+</section>
+
+<div class="checkout">
+  <main>
+    <section class="card">
+      <header>
+        <span>1</span>
+        <div>
+          <h2>Cliente</h2>
+          <p>Selecciona la cuenta de crédito</p>
+        </div>
+      </header>
+      <label
+        >Cliente<select [ngModel]="clientId()" (ngModelChange)="clientId.set($event)">
+          <option value="c1">María Torres · DNI 75535927</option>
+          <option value="c2">Carlos Ruiz · DNI 67390765</option>
+        </select></label
+      >
+      <div class="credit">
+        <span
+          ><small>Línea máxima</small><b>{{ creditLine() | currency: 'PEN' : 'S/ ' }}</b></span
+        ><span
+          ><small>Crédito utilizado</small><b>{{ usedCredit() | currency: 'PEN' : 'S/ ' }}</b></span
+        ><span
+          ><small>Disponible</small
+          ><b class="available">{{ available() | currency: 'PEN' : 'S/ ' }}</b></span
+        >
+      </div>
+    </section>
+    <section class="card">
+      <header>
+        <span>2</span>
+        <div>
+          <h2>Productos</h2>
+          <p>Agrega artículos y cantidades</p>
+        </div>
+      </header>
+      @for (item of items(); track item.id) {
+        <div class="item">
+          <span
+            ><b>{{ item.name }}</b
+            ><small>{{ item.price | currency: 'PEN' : 'S/ ' }} por {{ item.unit }}</small></span
+          ><label
+            >Cantidad<input
+              type="number"
+              min="0"
+              [ngModel]="item.quantity"
+              (ngModelChange)="quantity(item.id, $event)" /></label
+          ><strong>{{ item.price * item.quantity | currency: 'PEN' : 'S/ ' }}</strong>
+        </div>
+      }
+    </section>
+    <section class="card">
+      <header>
+        <span>3</span>
+        <div>
+          <h2>Condiciones de financiamiento</h2>
+          <p>Define cómo se pagará la compra</p>
+        </div>
+      </header>
+      <div class="fields">
+        <label
+          >Modalidad<select [(ngModel)]="mode">
+            <option value="installments">Cuotas mensuales</option>
+            <option value="single">Pago único</option>
+          </select></label
+        >
+        @if (mode === 'installments') {
+          <label
+            >Número de cuotas<select [(ngModel)]="months">
+              <option [ngValue]="1">1 mes</option>
+              <option [ngValue]="2">2 meses</option>
+              @if (clientId() === 'c1') {
+                <option [ngValue]="3">3 meses</option>
+              }
+            </select></label
+          >
+        }
+        <label>Fecha de compra<input type="date" [(ngModel)]="purchaseDate" [max]="today" /></label>
+      </div>
+      <p class="note">
+        La previsualización es referencial. El backend financiero deberá generar el cronograma
+        definitivo con base 360/30 y las tasas pactadas.
+      </p>
+    </section>
+  </main>
+  <aside class="summary">
+    <h2>Resumen de compra</h2>
+    <div>
+      <span>Subtotal</span><b>{{ total() | currency: 'PEN' : 'S/ ' }}</b>
+    </div>
+    <div>
+      <span>Modalidad</span><b>{{ mode === 'single' ? 'Pago único' : months + ' cuotas' }}</b>
+    </div>
+    <div>
+      <span>Crédito después</span><b>{{ available() - total() | currency: 'PEN' : 'S/ ' }}</b>
+    </div>
+    <hr />
+    <div class="total">
+      <span>Total financiado</span><strong>{{ total() | currency: 'PEN' : 'S/ ' }}</strong>
+    </div>
+    @if (total() > available()) {
+      <p class="error">
+        La compra supera el crédito disponible por
+        {{ total() - available() | currency: 'PEN' : 'S/ ' }}.
+      </p>
+    }
+    <button
+      mat-flat-button
+      type="button"
+      [disabled]="
+        total() <= 0 ||
+        total() > available() ||
+        !purchaseDate ||
+        purchaseDate > today ||
+        months > (clientId() === 'c1' ? 3 : 2)
+      "
+      (click)="confirm()"
+    >
+      Confirmar compra</button
+    ><small>Los datos de esta demo se conservan solo durante la sesión.</small>
+  </aside>
+</div>

@@ -1,0 +1,7 @@
+<h2 mat-dialog-title>¿Seguro que desea eliminar al cliente {{ data.name }}?</h2>
+<mat-dialog-actions
+  ><button mat-button (click)="ref.close()">Cancelar</button
+  ><button mat-flat-button class="danger" (click)="ref.close(true)">
+    Eliminar
+  </button></mat-dialog-actions
+>

@@ -10,10 +10,13 @@ html {
   @include mat.theme(
     (
       color: (
-        primary: mat.$magenta-palette,
-        tertiary: mat.$violet-palette,
+        primary: mat.$blue-palette,
+        tertiary: mat.$blue-palette,
       ),
-      typography: Roboto,
+      typography: (
+        plain-family: 'Inter, sans-serif',
+        brand-family: 'Poppins, sans-serif',
+      ),
       density: 0,
     )
   );
