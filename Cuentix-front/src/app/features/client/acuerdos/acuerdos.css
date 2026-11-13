@@ -1,0 +1,55 @@
+:host {
+  display: block;
+  font-family: var(--ds-font-family);
+}
+.acuerdos-contenedor {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  overflow: hidden;
+}
+.tabla-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+th {
+  background: var(--ds-surface-muted);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+th,
+td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--ds-border);
+}
+tbody tr:hover {
+  background: var(--ds-surface-muted);
+}
+.boton-detalle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--ds-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  border-radius: var(--ds-radius-md);
+}
+.mensaje-tabla {
+  text-align: center;
+  padding: 2rem;
+  color: var(--ds-muted);
+}
+.mensaje-error {
+  color: var(--ds-destructive);
+}
+@media (max-width: 768px) {
+  table {
+    min-width: 680px;
+  }
+}

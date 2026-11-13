@@ -1,9 +1,9 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { forkJoin, map, of, switchMap } from 'rxjs';
+import { forkJoin, map, of, switchMap, catchError } from 'rxjs';
 import { ClientService } from '../../core/services/client.service';
 import { PaymentService } from '../../core/services/payment.service';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
@@ -16,6 +16,7 @@ import { PageHeader } from '../../shared/ui/page-header/page-header';
   styleUrl: './dashboard.scss',
 })
 export class Dashboard {
+  protected readonly error = signal('');
   private readonly payments = inject(PaymentService);
   protected readonly today = new Date().toLocaleDateString('en-CA');
   protected readonly data = toSignal(
@@ -26,22 +27,24 @@ export class Dashboard {
           (clients.length
             ? forkJoin(
                 clients.map((client) =>
-                  this.payments
-                    .getByClientId(client.id)
-                    .pipe(
-                      map((items) =>
-                        items.map((item) => ({
-                          ...item,
-                          clientName: client.name,
-                          currency: client.currency,
-                        })),
-                      ),
+                  this.payments.getByClientId(client.id).pipe(
+                    map((items) =>
+                      items.map((item) => ({
+                        ...item,
+                        clientName: client.name,
+                        currency: client.currency,
+                      })),
                     ),
+                  ),
                 ),
               )
             : of([])
           ).pipe(map((groups) => ({ clients, items: groups.flat() }))),
         ),
+        catchError(() => {
+          this.error.set('No se pudo cargar el resumen financiero.');
+          return of({ clients: [], items: [] });
+        }),
       ),
   );
   protected readonly unpaid = computed(

@@ -1,0 +1,52 @@
+<section class="client-page">
+  <a routerLink="/cliente/reporte">Volver al reporte</a>
+  <h1>Detalle de compra</h1>
+  @if (cargando()) {
+    <p role="status">Cargando compra...</p>
+  } @else if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
+  @if (detalle(); as d) {
+    <h2>{{ d.tienda }}</h2>
+    <p>{{ d.moneda }} {{ d.total | number: '1.2-2' }} ? {{ d.fecha | date: 'dd/MM/yyyy' }}</p>
+    <h2>Productos adquiridos</h2>
+    <ul>
+      @for (p of d.productos; track p.id) {
+        <li>{{ p.nombre }}: {{ p.cantidad }} {{ p.unidad }}</li>
+      } @empty {
+        <li>Sin productos registrados.</li>
+      }
+    </ul>
+    <h2>Cuotas</h2>
+    <div class="tabla-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Vencimiento</th>
+            <th>Importe</th>
+            <th>Estado</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of d.cuotas; track c.id) {
+            <tr>
+              <td>{{ c.numero }}</td>
+              <td>{{ c.fechaVencimiento | date: 'dd/MM/yyyy' }}</td>
+              <td>{{ d.moneda }} {{ c.total | number: '1.2-2' }}</td>
+              <td>{{ c.cancelado ? 'Cancelada' : 'Pendiente' }}</td>
+              <td>
+                <a [routerLink]="['/cliente/reporte/detalle', d.id, 'cuota', c.id]">Ver cuota</a>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5">Sin cuotas registradas para esta compra.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

@@ -1,12 +1,15 @@
 import { CurrencyPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
-
+import { ClientService } from '../../core/services/client.service';
+import { Client } from '../../core/models/client.model';
+import { CatalogStore } from '../../core/data-access/catalog.store';
+import { isoToday } from '../../financial-engine/domain/schedule-domain';
 @Component({
   selector: 'app-purchases',
   imports: [RouterLink, CurrencyPipe, FormsModule, MatButtonModule, MatSnackBarModule, PageHeader],
@@ -15,32 +18,73 @@ import { PageHeader } from '../../shared/ui/page-header/page-header';
   styleUrl: './purchases.scss',
 })
 export class Purchases {
-  private readonly snack = inject(MatSnackBar);
-  protected readonly clientId = signal('c1');
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private snack = inject(MatSnackBar);
+  protected catalog = inject(CatalogStore);
+  protected clients = signal<Client[]>([]);
+  protected clientId = signal('');
   protected mode = 'installments';
   protected months = 3;
-  protected readonly today = new Date().toLocaleDateString('en-CA');
+  protected readonly today = isoToday();
   protected purchaseDate = this.today;
-  protected readonly items = signal([
-    { id: 1, name: 'Café instantáneo', unit: 'kg', price: 20, quantity: 1 },
-    { id: 2, name: 'Atún Primor 500 ml', unit: 'unidad', price: 8, quantity: 0 },
-    { id: 3, name: 'Leche Laive 300 ml', unit: 'unidad', price: 4.5, quantity: 0 },
-  ]);
-  protected readonly creditLine = computed(() => (this.clientId() === 'c1' ? 500 : 800));
-  protected readonly usedCredit = computed(() => (this.clientId() === 'c1' ? 64.39 : 25));
-  protected readonly available = computed(() => this.creditLine() - this.usedCredit());
-  protected readonly total = computed(() =>
-    this.items().reduce((sum, item) => sum + item.price * item.quantity, 0),
+  protected quantities = signal<Record<number, number>>({});
+  protected error = signal('');
+  protected saving = signal(false);
+  protected readonly selected = computed(() =>
+    this.clients().find((c) => c.id === this.clientId()),
   );
+  protected readonly currency = computed(() => this.selected()?.currency ?? 'PEN');
+  protected readonly creditLine = computed(() => this.selected()?.creditLine ?? 0);
+  protected readonly usedCredit = computed(() => this.selected()?.usedCredit ?? 0);
+  protected readonly available = computed(() => this.creditLine() - this.usedCredit());
+  protected readonly maxMonths = computed(() => this.selected()?.maxMonths ?? 1);
+  protected readonly items = computed(() =>
+    this.catalog
+      .products()
+      .map((p) => ({ ...p, price: p.creditPrice, quantity: this.quantities()[p.id] ?? 0 })),
+  );
+  protected readonly total = computed(() =>
+    this.items().reduce((s, p) => s + p.price * p.quantity, 0),
+  );
+  constructor() {
+    inject(ClientService)
+      .getAll()
+      .subscribe({
+        next: (r) => {
+          this.clients.set(r);
+          this.clientId.set(r[0]?.id ?? '');
+        },
+        error: () => this.error.set('No se pudieron cargar las cuentas de crédito.'),
+      });
+  }
   protected quantity(id: number, value: number) {
-    this.items.update((items) =>
-      items.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(0, Number(value) || 0) } : item,
-      ),
-    );
+    this.quantities.update((q) => ({ ...q, [id]: Math.max(0, Math.floor(Number(value) || 0)) }));
   }
   protected confirm() {
-    this.snack.open('Compra registrada en la sesión de demostración', 'Cerrar', { duration: 3500 });
-    this.items.update((items) => items.map((item) => ({ ...item, quantity: 0 })));
+    if (this.saving()) return;
+    this.saving.set(true);
+    this.error.set('');
+    this.http
+      .post<{ id: string }>('/api/business/purchases', {
+        accountId: Number(this.clientId()),
+        months: this.months,
+        mode: this.mode,
+        purchaseDate: this.purchaseDate,
+        items: this.items()
+          .filter((i) => i.quantity > 0)
+          .map((i) => ({ productId: i.id, quantity: i.quantity })),
+      })
+      .subscribe({
+        next: (p) => {
+          this.saving.set(false);
+          this.snack.open('Compra y cronograma guardados', 'Cerrar', { duration: 3000 });
+          this.router.navigate(['/purchases', p.id, 'schedule']);
+        },
+        error: (e) => {
+          this.error.set(e.error?.message ?? 'No se pudo registrar la compra.');
+          this.saving.set(false);
+        },
+      });
   }
 }

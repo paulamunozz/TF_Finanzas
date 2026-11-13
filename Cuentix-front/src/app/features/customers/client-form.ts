@@ -36,8 +36,8 @@ export class ClientForm {
     lateRateType: this.fb.nonNullable.control<Client['lateRateType']>('TN', Validators.required),
     maxMonths: [1, [Validators.required, Validators.min(1), Validators.max(60)]],
     creditLine: [0, [Validators.required, Validators.min(0.01)]],
-    cutOffDay: [1, [Validators.required, Validators.min(1), Validators.max(28)]],
-    paymentDay: [1, [Validators.required, Validators.min(1), Validators.max(28)]],
+    cutOffDay: [1, [Validators.required, Validators.min(1), Validators.max(31)]],
+    paymentDay: [1, [Validators.required, Validators.min(1), Validators.max(31)]],
   });
   protected readonly saving = signal(false);
   protected readonly error = signal('');
@@ -55,12 +55,10 @@ export class ClientForm {
         control.updateValueAndValidity({ emitEvent: false });
       });
     if (this.id)
-      this.service
-        .getById(this.id)
-        .subscribe({
-          next: (client) => this.form.patchValue(client),
-          error: () => this.error.set('No se encontró el cliente.'),
-        });
+      this.service.getById(this.id).subscribe({
+        next: (client) => this.form.patchValue(client),
+        error: () => this.error.set('No se encontró el cliente.'),
+      });
   }
   protected save(): void {
     if (this.saving()) return;
@@ -88,9 +86,9 @@ export class ClientForm {
         );
         this.router.navigate(['/clients']);
       },
-      error: () => {
+      error: (e) => {
         this.saving.set(false);
-        this.error.set('No se pudo guardar el cliente.');
+        this.error.set(e.error?.message ?? 'No se pudo guardar el cliente.');
       },
     });
   }

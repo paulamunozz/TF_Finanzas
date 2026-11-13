@@ -1,22 +1,52 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { tap, catchError, throwError } from 'rxjs';
 import { CatalogProduct } from '../models/catalog-product.model';
-
 @Injectable({ providedIn: 'root' })
 export class CatalogStore {
-  private readonly state = signal<CatalogProduct[]>([
-    { id: 101, name: 'Café instantáneo', unit: 'kg', cashPrice: 18.9, creditPrice: 20 },
-    { id: 102, name: 'Atún Primor 500 ml', unit: 'unidad', cashPrice: 7.5, creditPrice: 8 },
-    { id: 103, name: 'Leche Laive 300 ml', unit: 'unidad', cashPrice: 4.2, creditPrice: 4.5 },
-  ]);
+  private http = inject(HttpClient);
+  private state = signal<CatalogProduct[]>([]);
   readonly products = this.state.asReadonly();
-  save(draft: Omit<CatalogProduct, 'id'>, id: number | null): void {
-    this.state.update((items) =>
+  readonly error = signal('');
+  readonly loading = signal(true);
+  constructor() {
+    this.load();
+  }
+  load() {
+    this.loading.set(true);
+    this.error.set('');
+    this.http.get<CatalogProduct[]>('/api/catalog').subscribe({
+      next: (r) => {
+        this.state.set(r);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('No se pudo cargar el catálogo.');
+        this.loading.set(false);
+      },
+    });
+  }
+  save(draft: Omit<CatalogProduct, 'id'>, id: number | null) {
+    this.error.set('');
+    const request =
       id === null
-        ? [...items, { ...draft, id: Date.now() }]
-        : items.map((item) => (item.id === id ? { ...draft, id } : item)),
+        ? this.http.post<CatalogProduct>('/api/catalog', draft)
+        : this.http.put<CatalogProduct>('/api/catalog/' + id, draft);
+    return request.pipe(
+      tap(() => this.load()),
+      catchError((e) => {
+        this.error.set(e.error?.message ?? 'No se pudo guardar el producto.');
+        return throwError(() => e);
+      }),
     );
   }
-  remove(id: number): void {
-    this.state.update((items) => items.filter((item) => item.id !== id));
+  remove(id: number) {
+    return this.http.delete<void>('/api/catalog/' + id).pipe(
+      tap(() => this.load()),
+      catchError((e) => {
+        this.error.set('No se pudo eliminar el producto.');
+        return throwError(() => e);
+      }),
+    );
   }
 }

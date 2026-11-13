@@ -1,14 +1,20 @@
 <section class="products">
+  @if (loading()) {
+    <p role="status">Cargando productos…</p>
+  }
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
   @if (pendingDelete(); as id) {
     <div class="delete-confirm" role="alert">
-      <span>¿Eliminar este producto del catálogo de la sesión?</span
+      <span>¿Eliminar este producto del catálogo?</span
       ><button mat-button (click)="pendingDelete.set(null)">Cancelar</button
       ><button mat-button (click)="remove(id); pendingDelete.set(null)">Eliminar</button>
     </div>
   }
   <app-page-header
     title="Mis productos"
-    description="Administra el catálogo comercial de Bodega Mariela."
+    description="Administra el catálogo comercial de tu negocio."
     ><button mat-flat-button type="button" (click)="showForm.set(!showForm())">
       Nuevo producto
     </button></app-page-header

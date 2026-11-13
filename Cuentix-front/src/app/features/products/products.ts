@@ -33,18 +33,24 @@ export class Products {
   protected readonly showForm = signal(false);
   private readonly catalog = inject(CatalogStore);
   protected readonly products = this.catalog.products;
+  protected readonly error = this.catalog.error;
+  protected readonly loading = this.catalog.loading;
   protected draft = { name: '', unit: 'unidad', cashPrice: 0, creditPrice: 0 };
   protected readonly filtered = computed(() =>
     this.products().filter((p) => p.name.toLowerCase().includes(this.query().toLowerCase())),
   );
   protected add() {
     if (!this.draft.name || this.draft.cashPrice <= 0 || this.draft.creditPrice <= 0) return;
-    this.catalog.save(this.draft, this.editingId);
-    this.editingId = null;
-    this.draft = { name: '', unit: 'unidad', cashPrice: 0, creditPrice: 0 };
-    this.showForm.set(false);
+    this.catalog.save(this.draft, this.editingId).subscribe({
+      next: () => {
+        this.editingId = null;
+        this.draft = { name: '', unit: 'unidad', cashPrice: 0, creditPrice: 0 };
+        this.showForm.set(false);
+      },
+      error: () => {},
+    });
   }
   protected remove(id: number) {
-    this.catalog.remove(id);
+    this.catalog.remove(id).subscribe({ error: () => {} });
   }
 }

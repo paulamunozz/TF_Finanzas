@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core';
 
-/** Provisional adapter paths. Confirm the backend contract before switching providers. */
+/** Same-origin API implemented by Spring; the development proxy forwards /api. */
 export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL', {
   providedIn: 'root',
   factory: () => '/api',

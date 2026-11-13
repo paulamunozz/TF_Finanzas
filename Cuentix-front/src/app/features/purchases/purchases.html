@@ -8,6 +8,12 @@
   >
 </section>
 
+@if (error()) {
+  <p role="alert">{{ error() }}</p>
+}
+@if (catalog.error()) {
+  <p role="alert">{{ catalog.error() }}</p>
+}
 <div class="checkout">
   <main>
     <section class="card">
@@ -20,18 +26,19 @@
       </header>
       <label
         >Cliente<select [ngModel]="clientId()" (ngModelChange)="clientId.set($event)">
-          <option value="c1">María Torres · DNI 75535927</option>
-          <option value="c2">Carlos Ruiz · DNI 67390765</option>
+          @for (client of clients(); track client.id) {
+            <option [value]="client.id">{{ client.name }} · DNI {{ client.dni }}</option>
+          }
         </select></label
       >
       <div class="credit">
         <span
-          ><small>Línea máxima</small><b>{{ creditLine() | currency: 'PEN' : 'S/ ' }}</b></span
+          ><small>Línea máxima</small><b>{{ creditLine() | currency: currency() }}</b></span
         ><span
-          ><small>Crédito utilizado</small><b>{{ usedCredit() | currency: 'PEN' : 'S/ ' }}</b></span
+          ><small>Crédito utilizado</small><b>{{ usedCredit() | currency: currency() }}</b></span
         ><span
           ><small>Disponible</small
-          ><b class="available">{{ available() | currency: 'PEN' : 'S/ ' }}</b></span
+          ><b class="available">{{ available() | currency: currency() }}</b></span
         >
       </div>
     </section>
@@ -47,14 +54,14 @@
         <div class="item">
           <span
             ><b>{{ item.name }}</b
-            ><small>{{ item.price | currency: 'PEN' : 'S/ ' }} por {{ item.unit }}</small></span
+            ><small>{{ item.price | currency: currency() }} por {{ item.unit }}</small></span
           ><label
             >Cantidad<input
               type="number"
               min="0"
               [ngModel]="item.quantity"
               (ngModelChange)="quantity(item.id, $event)" /></label
-          ><strong>{{ item.price * item.quantity | currency: 'PEN' : 'S/ ' }}</strong>
+          ><strong>{{ item.price * item.quantity | currency: currency() }}</strong>
         </div>
       }
     </section>
@@ -75,42 +82,36 @@
         >
         @if (mode === 'installments') {
           <label
-            >Número de cuotas<select [(ngModel)]="months">
-              <option [ngValue]="1">1 mes</option>
-              <option [ngValue]="2">2 meses</option>
-              @if (clientId() === 'c1') {
-                <option [ngValue]="3">3 meses</option>
-              }
-            </select></label
-          >
+            >Número de cuotas<input type="number" [(ngModel)]="months" min="1" [max]="maxMonths()"
+          /></label>
         }
         <label>Fecha de compra<input type="date" [(ngModel)]="purchaseDate" [max]="today" /></label>
       </div>
       <p class="note">
-        La previsualización es referencial. El backend financiero deberá generar el cronograma
-        definitivo con base 360/30 y las tasas pactadas.
+        El subtotal no incluye intereses. Al confirmar, el servidor valida el crédito disponible y
+        guarda el cronograma definitivo.
       </p>
     </section>
   </main>
   <aside class="summary">
     <h2>Resumen de compra</h2>
     <div>
-      <span>Subtotal</span><b>{{ total() | currency: 'PEN' : 'S/ ' }}</b>
+      <span>Subtotal</span><b>{{ total() | currency: currency() }}</b>
     </div>
     <div>
       <span>Modalidad</span><b>{{ mode === 'single' ? 'Pago único' : months + ' cuotas' }}</b>
     </div>
     <div>
-      <span>Crédito después</span><b>{{ available() - total() | currency: 'PEN' : 'S/ ' }}</b>
+      <span>Crédito después</span><b>{{ available() - total() | currency: currency() }}</b>
     </div>
     <hr />
     <div class="total">
-      <span>Total financiado</span><strong>{{ total() | currency: 'PEN' : 'S/ ' }}</strong>
+      <span>Subtotal de productos</span><strong>{{ total() | currency: currency() }}</strong>
     </div>
     @if (total() > available()) {
       <p class="error">
         La compra supera el crédito disponible por
-        {{ total() - available() | currency: 'PEN' : 'S/ ' }}.
+        {{ total() - available() | currency: currency() }}.
       </p>
     }
     <button
@@ -121,11 +122,13 @@
         total() > available() ||
         !purchaseDate ||
         purchaseDate > today ||
-        months > (clientId() === 'c1' ? 3 : 2)
+        (mode === 'installments' && (months < 1 || months > maxMonths())) ||
+        saving() ||
+        !clientId()
       "
       (click)="confirm()"
     >
       Confirmar compra</button
-    ><small>Los datos de esta demo se conservan solo durante la sesión.</small>
+    ><small>La compra y las cuotas se guardan en el servidor.</small>
   </aside>
 </div>

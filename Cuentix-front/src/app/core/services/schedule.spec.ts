@@ -16,6 +16,7 @@ describe('Payment schedules', () => {
     TestBed.configureTestingModule({ providers: [MockPaymentRepository] });
     repository = TestBed.inject(MockPaymentRepository);
     business = TestBed.inject(BusinessContext);
+    business.id.set('b1');
   });
   it('consolidates multiple purchases without duplicated installments', async () => {
     const items = await firstValueFrom(repository.getByClientId('c1'));

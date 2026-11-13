@@ -1,42 +1,55 @@
 <section class="form-page">
-  <app-page-header [title]="id ? 'Editar cliente' : 'Nuevo cliente'"
-    description="Configura la identidad y las condiciones crediticias del cliente."><a mat-stroked-button
-      routerLink="/clients">Cancelar</a></app-page-header>
+  <app-page-header
+    [title]="id ? 'Editar cliente' : 'Nuevo cliente'"
+    description="Vincula el DNI de un cliente registrado y configura su cuenta crediticia."
+    ><a mat-stroked-button routerLink="/clients">Cancelar</a></app-page-header
+  >
   <form [formGroup]="form" (ngSubmit)="save()">
     <section class="form-section">
       <header>
         <span>1</span>
         <div>
           <h2>Identificación</h2>
-          <p>Datos básicos del titular de la cuenta</p>
+          <p>El cliente debe registrarse primero. Su nombre se obtiene de su perfil.</p>
         </div>
       </header>
       <div class="fields">
         <div class="ui-field">
           <label for="dni">DNI</label>
           <div class="field-control">
-            <input id="dni" [attr.aria-invalid]="form.controls.dni.invalid && form.controls.dni.touched"
-              inputmode="numeric" maxlength="8" formControlName="dni" /><small class="field-hint">8 dígitos</small>
+            <input
+              id="dni"
+              [attr.aria-invalid]="form.controls.dni.invalid && form.controls.dni.touched"
+              inputmode="numeric"
+              maxlength="8"
+              formControlName="dni"
+            /><small class="field-hint">8 dígitos</small>
             @if (form.controls.dni.invalid && form.controls.dni.touched) {
-            <small class="field-error" role="alert">Ingresa un DNI válido de 8 dígitos</small>
+              <small class="field-error" role="alert">Ingresa un DNI válido de 8 dígitos</small>
             }
           </div>
         </div>
         <div class="ui-field">
           <label for="name">Nombre completo</label>
           <div class="field-control">
-            <input id="name" [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched"
-              formControlName="name" />
+            <input
+              id="name"
+              [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched"
+              formControlName="name"
+            />
             @if (form.controls.name.invalid && form.controls.name.touched) {
-            <small class="field-error" role="alert">El nombre es obligatorio</small>
+              <small class="field-error" role="alert">El nombre es obligatorio</small>
             }
           </div>
         </div>
         <div class="ui-field">
           <label for="currency">Moneda</label>
           <div class="field-control">
-            <select id="currency" [attr.aria-invalid]="form.controls.currency.invalid && form.controls.currency.touched"
-              formControlName="currency">
+            <select
+              id="currency"
+              [attr.aria-invalid]="form.controls.currency.invalid && form.controls.currency.touched"
+              formControlName="currency"
+            >
               <option value="PEN">Soles (PEN)</option>
               <option value="USD">Dólares (USD)</option>
             </select>
@@ -56,19 +69,28 @@
         <div class="ui-field">
           <label for="compensatoryRate">Tasa compensatoria</label>
           <div class="field-control">
-            <input id="compensatoryRate" [attr.aria-invalid]="
+            <input
+              id="compensatoryRate"
+              [attr.aria-invalid]="
                 form.controls.compensatoryRate.invalid && form.controls.compensatoryRate.touched
-              " type="number" step="0.01" formControlName="compensatoryRate" /><span class="field-suffix">%</span>
+              "
+              type="number"
+              step="0.01"
+              formControlName="compensatoryRate"
+            /><span class="field-suffix">%</span>
             @if (form.controls.compensatoryRate.invalid && form.controls.compensatoryRate.touched) {
-            <small class="field-error" role="alert">Debe ser mayor que cero</small>
+              <small class="field-error" role="alert">Debe ser mayor que cero</small>
             }
           </div>
         </div>
         <div class="ui-field">
           <label for="rateType">Tipo de tasa</label>
           <div class="field-control">
-            <select id="rateType" [attr.aria-invalid]="form.controls.rateType.invalid && form.controls.rateType.touched"
-              formControlName="rateType">
+            <select
+              id="rateType"
+              [attr.aria-invalid]="form.controls.rateType.invalid && form.controls.rateType.touched"
+              formControlName="rateType"
+            >
               <option value="TN">Nominal (TN)</option>
               <option value="TE">Efectiva (TE)</option>
             </select>
@@ -77,44 +99,61 @@
         <div class="ui-field">
           <label for="ratePeriod">Periodicidad</label>
           <div class="field-control">
-            <select id="ratePeriod" [attr.aria-invalid]="
+            <select
+              id="ratePeriod"
+              [attr.aria-invalid]="
                 form.controls.ratePeriod.invalid && form.controls.ratePeriod.touched
-              " formControlName="ratePeriod">
+              "
+              formControlName="ratePeriod"
+            >
               <option value="Mensual">Mensual</option>
               <option value="Diaria">Diaria</option>
             </select>
           </div>
         </div>
         @if (form.controls.rateType.value === 'TN') {
-        <div class="ui-field">
-          <label for="capitalizationPeriod">Capitalización</label>
-          <div class="field-control">
-            <select id="capitalizationPeriod" [attr.aria-invalid]="
+          <div class="ui-field">
+            <label for="capitalizationPeriod">Capitalización</label>
+            <div class="field-control">
+              <select
+                id="capitalizationPeriod"
+                [attr.aria-invalid]="
                   form.controls.capitalizationPeriod.invalid &&
                   form.controls.capitalizationPeriod.touched
-                " formControlName="capitalizationPeriod">
-              <option value="Mensual">Mensual</option>
-              <option value="Diaria">Diaria</option>
-            </select><small class="field-hint">Requerida para convertir la tasa nominal</small>
+                "
+                formControlName="capitalizationPeriod"
+              >
+                <option value="Mensual">Mensual</option>
+                <option value="Diaria">Diaria</option></select
+              ><small class="field-hint">Requerida para convertir la tasa nominal</small>
+            </div>
           </div>
-        </div>
         }
         <div class="ui-field">
           <label for="lateRate">Tasa moratoria</label>
           <div class="field-control">
-            <input id="lateRate" [attr.aria-invalid]="form.controls.lateRate.invalid && form.controls.lateRate.touched"
-              type="number" step="0.01" formControlName="lateRate" /><span class="field-suffix">%</span>
+            <input
+              id="lateRate"
+              [attr.aria-invalid]="form.controls.lateRate.invalid && form.controls.lateRate.touched"
+              type="number"
+              step="0.01"
+              formControlName="lateRate"
+            /><span class="field-suffix">%</span>
             @if (form.controls.lateRate.invalid && form.controls.lateRate.touched) {
-            <small class="field-error" role="alert">Debe ser mayor que cero</small>
+              <small class="field-error" role="alert">Debe ser mayor que cero</small>
             }
           </div>
         </div>
         <div class="ui-field">
           <label for="lateRateType">Tipo de tasa moratoria</label>
           <div class="field-control">
-            <select id="lateRateType" [attr.aria-invalid]="
+            <select
+              id="lateRateType"
+              [attr.aria-invalid]="
                 form.controls.lateRateType.invalid && form.controls.lateRateType.touched
-              " formControlName="lateRateType">
+              "
+              formControlName="lateRateType"
+            >
               <option value="TN">Nominal (TN)</option>
               <option value="TE">Efectiva (TE)</option>
             </select>
@@ -138,53 +177,69 @@
         <div class="ui-field">
           <label for="creditLine">Línea de crédito máxima</label>
           <div class="field-control">
-            <span class="field-prefix">{{ form.controls.currency.value }}</span><input id="creditLine" type="number"
-              step="0.01" formControlName="creditLine" />
+            <span class="field-prefix">{{ form.controls.currency.value }}</span
+            ><input id="creditLine" type="number" step="0.01" formControlName="creditLine" />
             @if (form.controls.creditLine.invalid && form.controls.creditLine.touched) {
-            <small class="field-error" role="alert">Ingresa un importe válido</small>
+              <small class="field-error" role="alert">Ingresa un importe válido</small>
             }
           </div>
         </div>
         <div class="ui-field">
           <label for="maxMonths">Plazo máximo</label>
           <div class="field-control">
-            <input id="maxMonths" [attr.aria-invalid]="
+            <input
+              id="maxMonths"
+              [attr.aria-invalid]="
                 form.controls.maxMonths.invalid && form.controls.maxMonths.touched
-              " type="number" formControlName="maxMonths" /><span class="field-suffix"> meses</span>
+              "
+              type="number"
+              formControlName="maxMonths"
+            /><span class="field-suffix"> meses</span>
             @if (form.controls.maxMonths.invalid && form.controls.maxMonths.touched) {
-            <small class="field-error" role="alert">Ingresa entre 1 y 60 meses</small>
+              <small class="field-error" role="alert">Ingresa entre 1 y 60 meses</small>
             }
           </div>
         </div>
         <div class="ui-field">
           <label for="cutOffDay">Día de corte</label>
           <div class="field-control">
-            <input id="cutOffDay" [attr.aria-invalid]="
+            <input
+              id="cutOffDay"
+              [attr.aria-invalid]="
                 form.controls.cutOffDay.invalid && form.controls.cutOffDay.touched
-              " type="number" formControlName="cutOffDay" /><small class="field-hint">Entre 1 y 28</small>
+              "
+              type="number"
+              formControlName="cutOffDay"
+            /><small class="field-hint">Entre 1 y 28</small>
             @if (form.controls.cutOffDay.invalid && form.controls.cutOffDay.touched) {
-            <small class="field-error" role="alert">Debe estar entre 1 y 28</small>
+              <small class="field-error" role="alert">Debe estar entre 1 y 28</small>
             }
           </div>
         </div>
         <div class="ui-field">
           <label for="paymentDay">Día de pago</label>
           <div class="field-control">
-            <input id="paymentDay" [attr.aria-invalid]="
+            <input
+              id="paymentDay"
+              [attr.aria-invalid]="
                 form.controls.paymentDay.invalid && form.controls.paymentDay.touched
-              " type="number" formControlName="paymentDay" /><small class="field-hint">Entre 1 y 28</small>
+              "
+              type="number"
+              formControlName="paymentDay"
+            /><small class="field-hint">Entre 1 y 28</small>
             @if (form.controls.paymentDay.invalid && form.controls.paymentDay.touched) {
-            <small class="field-error" role="alert">Debe estar entre 1 y 28</small>
+              <small class="field-error" role="alert">Debe estar entre 1 y 28</small>
             }
           </div>
         </div>
       </div>
     </section>
     @if (error()) {
-    <p class="error" role="alert">{{ error() }}</p>
+      <p class="error" role="alert">{{ error() }}</p>
     }
     <footer>
-      <a mat-button routerLink="/clients">Cancelar</a><button mat-flat-button type="submit" [disabled]="saving()">
+      <a mat-button routerLink="/clients">Cancelar</a
+      ><button mat-flat-button type="submit" [disabled]="saving()">
         {{ saving() ? 'Guardando…' : id ? 'Guardar cambios' : 'Registrar cliente' }}
       </button>
     </footer>

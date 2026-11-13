@@ -6,6 +6,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ClienteRepository extends JpaRepository<Cliente, Integer> {
-    boolean existsByIdAndEstado(Integer id, Boolean estado);
-    Cliente findByUsuario_Codigo(String codigo);
+  boolean existsByIdAndEstado(Integer id, Boolean estado);
+
+  Cliente findByUsuario_Codigo(String codigo);
+
+  Cliente findByUsuario_Id(Integer usuarioId);
 }

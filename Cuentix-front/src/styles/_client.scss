@@ -1,0 +1,111 @@
+app-panel-cliente,
+app-login,
+app-registro,
+app-perfil,
+app-editar-perfil,
+app-acuerdos,
+app-reporte,
+app-detalle-reporte,
+app-detalle-cuota {
+  display: block;
+  font-family: var(--ds-font-family);
+  color: var(--ds-foreground);
+  h1 {
+    font-size: var(--ds-font-size-2xl);
+    margin-block: 0 1rem;
+  }
+  h2 {
+    font-size: var(--ds-font-size-xl);
+  }
+  input,
+  select,
+  button {
+    font: inherit;
+  }
+  button,
+  a.boton-detalle {
+    border-radius: var(--ds-radius-md);
+    min-height: var(--ds-control-height);
+  }
+  input {
+    border: 1px solid var(--ds-input);
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-surface);
+    color: var(--ds-foreground);
+  }
+  :focus-visible {
+    outline: 3px solid var(--ds-ring);
+    outline-offset: 3px;
+  }
+  [role='alert'],
+  .mensaje-error {
+    color: var(--ds-destructive);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--ds-surface);
+    text-align: left;
+  }
+  th,
+  td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--ds-border);
+  }
+  th {
+    background: var(--ds-surface-muted);
+  }
+  .tabla-responsive {
+    overflow-x: auto;
+  }
+  .client-page {
+    padding: var(--ds-space-6);
+    background: var(--ds-surface);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-lg);
+  }
+  dt {
+    font-weight: 600;
+    margin-top: 1rem;
+  }
+  dd {
+    margin: 0;
+  }
+  .barra-superior {
+    background: var(--ds-surface);
+    color: var(--ds-foreground);
+    border-bottom: 1px solid var(--ds-border);
+  }
+  .logo,
+  .boton-ingresar,
+  .boton-registrar,
+  .boton-guardar {
+    background: var(--ds-primary);
+    color: white;
+  }
+  .menu a {
+    color: var(--ds-muted-foreground);
+  }
+  .menu a.activo {
+    color: var(--ds-primary);
+    background: var(--ds-accent);
+  }
+  .contenido {
+    max-width: var(--ds-container);
+    margin: auto;
+    padding: var(--ds-space-6);
+  }
+}
+@media (max-width: 640px) {
+  app-panel-cliente .barra-superior {
+    padding: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  app-panel-cliente .contenido {
+    padding: 1rem;
+  }
+  .client-page {
+    padding: 1rem !important;
+  }
+}

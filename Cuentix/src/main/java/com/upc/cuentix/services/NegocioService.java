@@ -11,133 +11,154 @@ import com.upc.cuentix.repositories.NegocioRepository;
 import com.upc.cuentix.repositories.RolRepository;
 import com.upc.cuentix.repositories.UsuarioRepository;
 import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 public class NegocioService implements INegocioService {
+  @Autowired private com.upc.cuentix.config.ResourceAccess access;
 
-    private static final Integer ROL_NEGOCIO = 3;
+  private static final Integer ROL_NEGOCIO = 3;
 
-    @Autowired private NegocioRepository negocioRepository;
-    @Autowired private UsuarioRepository usuarioRepository;
-    @Autowired private RolRepository rolRepository;
-    @Autowired private GiroRepository giroRepository;
+  @Autowired private NegocioRepository negocioRepository;
+  @Autowired private UsuarioRepository usuarioRepository;
+  @Autowired private RolRepository rolRepository;
+  @Autowired private GiroRepository giroRepository;
 
-    @Override
-    @Transactional
-    public NegocioDTO registrar(NegocioDTO dto) {
-        if (usuarioRepository.existsByCodigoAndEstado(dto.getRuc(), true)) {
-            throw new RuntimeException("Ya existe el negocio de RUC " + dto.getRuc());
-        }
-
-        Rol rol = rolRepository.findById(ROL_NEGOCIO)
-                .orElseThrow(() -> new RuntimeException("No existe el rol de negocio"));
-        Giro giro = buscarGiro(dto.getGiroId());
-
-        Usuario usuario = new Usuario();
-        usuario.setCodigo(dto.getRuc());
-        usuario.setContrasena(dto.getContrasena());
-        usuario.setRol(rol);
-        usuario.setEstado(true);
-        usuario = usuarioRepository.save(usuario);
-
-        Negocio negocio = new Negocio();
-        negocio.setRazonSocial(dto.getRazonSocial());
-        negocio.setGiro(giro);
-        negocio.setDireccion(dto.getDireccion());
-        negocio.setTelefono(dto.getTelefono());
-        negocio.setEstado(true);
-        negocio.setUsuario(usuario);
-
-        return convertir(negocioRepository.save(negocio));
+  @Override
+  @Transactional
+  public NegocioDTO registrar(NegocioDTO dto) {
+    if (dto.getRuc() == null || !dto.getRuc().matches("[0-9]{11}"))
+      throw new IllegalArgumentException("RUC invalido");
+    if (dto.getContrasena() == null
+        || dto.getContrasena().length() < 8
+        || dto.getContrasena().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
+      throw new IllegalArgumentException("Contrasena invalida");
+    if (usuarioRepository.existsByCodigo(dto.getRuc())) {
+      throw new RuntimeException("Ya existe el negocio de RUC " + dto.getRuc());
     }
 
-    @Override
-    @Transactional
-    public NegocioDTO modificar(NegocioDTO dto) {
-        if (!negocioRepository.existsByIdAndEstado(dto.getId(), true)) {
-            throw new RuntimeException("No existe el registro de id " + dto.getId());
-        }
+    Rol rol =
+        rolRepository
+            .findById(ROL_NEGOCIO)
+            .orElseThrow(() -> new RuntimeException("No existe el rol de negocio"));
+    Giro giro = buscarGiro(dto.getGiroId());
 
-        Negocio negocio = negocioRepository.findById(dto.getId()).get();
-        Usuario usuario = negocio.getUsuario();
+    Usuario usuario = new Usuario();
+    usuario.setCodigo(dto.getRuc());
+    usuario.setContrasena(
+        new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder()
+            .encode(dto.getContrasena()));
+    usuario.setRol(rol);
+    usuario.setEstado(true);
+    usuario = usuarioRepository.save(usuario);
 
-        if (tiene(dto.getRuc()) && !dto.getRuc().equals(usuario.getCodigo())
-                && usuarioRepository.existsByCodigoAndEstado(dto.getRuc(), true)) {
-            throw new RuntimeException("El RUC " + dto.getRuc() + " ya ha sido registrado");
-        }
+    Negocio negocio = new Negocio();
+    negocio.setRazonSocial(dto.getRazonSocial());
+    negocio.setGiro(giro);
+    negocio.setDireccion(dto.getDireccion());
+    negocio.setTelefono(dto.getTelefono());
+    negocio.setEstado(true);
+    negocio.setUsuario(usuario);
 
-        if (tiene(dto.getRuc())) usuario.setCodigo(dto.getRuc());
-        if (tiene(dto.getContrasena())) usuario.setContrasena(dto.getContrasena());
-        if (tiene(dto.getRazonSocial())) negocio.setRazonSocial(dto.getRazonSocial());
-        if (dto.getGiroId() != null) negocio.setGiro(buscarGiro(dto.getGiroId()));
-        if (tiene(dto.getDireccion())) negocio.setDireccion(dto.getDireccion());
-        if (tiene(dto.getTelefono())) negocio.setTelefono(dto.getTelefono());
+    return convertir(negocioRepository.save(negocio));
+  }
 
-        usuarioRepository.save(usuario);
-        return convertir(negocioRepository.save(negocio));
+  @Override
+  @Transactional
+  public NegocioDTO modificar(NegocioDTO dto) {
+    access.business(dto.getId());
+    if (!negocioRepository.existsByIdAndEstado(dto.getId(), true)) {
+      throw new RuntimeException("No existe el registro de id " + dto.getId());
     }
 
-    @Override
-    @Transactional
-    public String eliminar(Integer id) {
-        Negocio negocio = negocioRepository.findById(id).orElse(null);
-        if (negocio == null || !negocio.getEstado()) {
-            return "No se encontró el negocio";
-        }
-        negocio.setEstado(false);
-        negocioRepository.save(negocio);
-        negocio.getUsuario().setEstado(false);
-        usuarioRepository.save(negocio.getUsuario());
-        return "Negocio eliminado exitosamente";
+    Negocio negocio = negocioRepository.findById(dto.getId()).get();
+    Usuario usuario = negocio.getUsuario();
+
+    if (tiene(dto.getRuc())
+        && !dto.getRuc().equals(usuario.getCodigo())
+        && usuarioRepository.existsByCodigo(dto.getRuc())) {
+      throw new RuntimeException("El RUC " + dto.getRuc() + " ya ha sido registrado");
     }
 
-    @Override
-    public NegocioDTO buscarPorRuc(String ruc) {
-        if (!tiene(ruc)) throw new RuntimeException("Ingrese el RUC");
-        Negocio negocio = negocioRepository.findByUsuario_Codigo(ruc);
-        if (negocio == null) throw new RuntimeException("Este RUC no se encuentra registrado");
-        if (!negocio.getEstado()) throw new RuntimeException("Este negocio no existe");
-        return convertir(negocio);
-    }
+    if (tiene(dto.getRuc())) usuario.setCodigo(dto.getRuc());
+    if (tiene(dto.getContrasena()))
+      usuario.setContrasena(
+          new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder()
+              .encode(dto.getContrasena()));
+    if (tiene(dto.getRazonSocial())) negocio.setRazonSocial(dto.getRazonSocial());
+    if (dto.getGiroId() != null) negocio.setGiro(buscarGiro(dto.getGiroId()));
+    if (tiene(dto.getDireccion())) negocio.setDireccion(dto.getDireccion());
+    if (tiene(dto.getTelefono())) negocio.setTelefono(dto.getTelefono());
 
-    @Override
-    public NegocioDTO buscarPorId(Integer id) {
-        if (id == null) return null;
-        Negocio negocio = negocioRepository.findById(id).orElse(null);
-        if (negocio == null) return null;
-        if (!negocio.getEstado()) throw new RuntimeException("Este negocio no existe");
-        return convertir(negocio);
-    }
+    usuarioRepository.save(usuario);
+    return convertir(negocioRepository.save(negocio));
+  }
 
-    @Override
-    public List<NegocioDTO> listar() {
-        return negocioRepository.findByEstado(true).stream()
-                .map(this::convertir).collect(Collectors.toList());
+  @Override
+  @Transactional
+  public String eliminar(Integer id) {
+    access.business(id);
+    Negocio negocio = negocioRepository.findById(id).orElse(null);
+    if (negocio == null || !negocio.getEstado()) {
+      return "No se encontró el negocio";
     }
+    negocio.setEstado(false);
+    negocioRepository.save(negocio);
+    negocio.getUsuario().setEstado(false);
+    usuarioRepository.save(negocio.getUsuario());
+    return "Negocio eliminado exitosamente";
+  }
 
-    private Giro buscarGiro(Integer idGiro) {
-        return giroRepository.findById(idGiro)
-                .orElseThrow(() -> new RuntimeException("No existe el giro de id " + idGiro));
-    }
+  @Override
+  public NegocioDTO buscarPorRuc(String ruc) {
+    if (!tiene(ruc)) throw new RuntimeException("Ingrese el RUC");
+    Negocio negocio = negocioRepository.findByUsuario_Codigo(ruc);
+    if (negocio == null) throw new RuntimeException("Este RUC no se encuentra registrado");
+    if (!negocio.getEstado()) throw new RuntimeException("Este negocio no existe");
+    access.business(negocio.getId());
+    return convertir(negocio);
+  }
 
-    private boolean tiene(String s) {
-        return s != null && !s.isBlank();
-    }
+  @Override
+  public NegocioDTO buscarPorId(Integer id) {
+    access.business(id);
+    if (id == null) return null;
+    Negocio negocio = negocioRepository.findById(id).orElse(null);
+    if (negocio == null) return null;
+    if (!negocio.getEstado()) throw new RuntimeException("Este negocio no existe");
+    return convertir(negocio);
+  }
 
-    private NegocioDTO convertir(Negocio n) {
-        NegocioDTO dto = new NegocioDTO();
-        dto.setId(n.getId());
-        dto.setRuc(n.getUsuario().getCodigo());
-        dto.setRazonSocial(n.getRazonSocial());
-        dto.setGiroId(n.getGiro() != null ? n.getGiro().getId() : null);
-        dto.setDireccion(n.getDireccion());
-        dto.setTelefono(n.getTelefono());
-        dto.setEstado(n.getEstado());
-        return dto;
-    }
+  @Override
+  public List<NegocioDTO> listar() {
+    return negocioRepository.findByEstado(true).stream()
+        .filter(n -> access.ownsBusiness(n.getId()))
+        .map(this::convertir)
+        .collect(Collectors.toList());
+  }
+
+  private Giro buscarGiro(Integer idGiro) {
+    return giroRepository
+        .findById(idGiro)
+        .orElseThrow(() -> new RuntimeException("No existe el giro de id " + idGiro));
+  }
+
+  private boolean tiene(String s) {
+    return s != null && !s.isBlank();
+  }
+
+  private NegocioDTO convertir(Negocio n) {
+    NegocioDTO dto = new NegocioDTO();
+    dto.setId(n.getId());
+    dto.setRuc(n.getUsuario().getCodigo());
+    dto.setRazonSocial(n.getRazonSocial());
+    dto.setGiroId(n.getGiro() != null ? n.getGiro().getId() : null);
+    dto.setDireccion(n.getDireccion());
+    dto.setTelefono(n.getTelefono());
+    dto.setEstado(n.getEstado());
+    return dto;
+  }
 }

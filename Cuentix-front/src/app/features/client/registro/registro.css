@@ -1,0 +1,43 @@
+:host {
+  display: block;
+  font-family: var(--ds-font-family);
+}
+.registro-form {
+  display: grid;
+  gap: 1rem;
+}
+.form-group {
+  display: grid;
+  gap: 0.5rem;
+}
+h1 {
+  font-size: 1.5rem;
+}
+label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+input {
+  min-height: 2.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--ds-input);
+  border-radius: var(--ds-radius-md);
+}
+.btn-registro {
+  display: block;
+  text-align: center;
+  background: var(--ds-primary);
+  color: #fff;
+  border: 0;
+  border-radius: var(--ds-radius-md);
+  padding: 0.75rem;
+}
+button:disabled {
+  opacity: 0.6;
+}
+.alert-error {
+  color: var(--ds-destructive);
+}
+.alert-success {
+  color: var(--ds-success);
+}

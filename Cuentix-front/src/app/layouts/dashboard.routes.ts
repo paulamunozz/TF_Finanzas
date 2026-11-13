@@ -1,10 +1,13 @@
 import { Routes } from '@angular/router';
+import { sessionGuard } from '../core/services/session.guard';
 import { MainLayout } from './dashboard-layout/main-layout';
 
 export const PRIVATE_ROUTES: Routes = [
   {
     path: '',
     component: MainLayout,
+    canActivate: [sessionGuard],
+    data: { roles: [1, 3] },
     children: [
       {
         path: 'purchases',

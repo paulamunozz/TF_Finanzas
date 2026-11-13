@@ -1,4 +1,9 @@
 <section class="dashboard">
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+  } @else if (!data()) {
+    <p role="status">Cargando resumen…</p>
+  }
   <app-page-header title="Resumen financiero" description="Tu cartera comercial, en un solo lugar."
     ><a mat-flat-button routerLink="/purchases">＋ Registrar compra</a></app-page-header
   >

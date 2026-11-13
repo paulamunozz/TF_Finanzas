@@ -1,3 +1,7 @@
+import { signal } from '@angular/core';
+import { BusinessContext } from '../../core/services/business-context.service';
+import { of } from 'rxjs';
+import { AuthService } from '../../core/services/auth.service';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -12,6 +16,11 @@ describe('Schedule navigation', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter(routes),
+        {
+          provide: BusinessContext,
+          useValue: { id: signal('b1'), name: signal('Demo'), error: signal('') },
+        },
+        { provide: AuthService, useValue: { recuperar: () => of({ id: 1, rolId: 3 }) } },
         { provide: CLIENT_REPOSITORY, useClass: MockClientRepository },
         { provide: PAYMENT_REPOSITORY, useClass: MockPaymentRepository },
       ],

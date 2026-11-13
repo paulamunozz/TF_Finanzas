@@ -13,6 +13,7 @@ export interface Client {
   lateRateType: RateType;
   maxMonths: number;
   creditLine: number;
+  usedCredit?: number;
   cutOffDay: number;
   paymentDay: number;
 }

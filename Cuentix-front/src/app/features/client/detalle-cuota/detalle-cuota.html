@@ -1,0 +1,26 @@
+<section class="client-page">
+  <a [routerLink]="['/cliente/reporte/detalle', compra()?.id]">Volver a la compra</a>
+  <h1>Detalle de cuota</h1>
+  @if (cargando()) {
+    <p role="status">Cargando cuota...</p>
+  } @else if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
+  @if (detalle(); as d) {
+    <h2>{{ compra()?.tienda }} ? Cuota {{ d.numero }}</h2>
+    <dl>
+      <dt>Vencimiento</dt>
+      <dd>{{ d.fechaVencimiento | date: 'dd/MM/yyyy' }}</dd>
+      <dt>Interés</dt>
+      <dd>{{ d.interes | number: '1.2-2' }}</dd>
+      <dt>Amortización</dt>
+      <dd>{{ d.amortizacion | number: '1.2-2' }}</dd>
+      <dt>Mora</dt>
+      <dd>{{ d.mora | number: '1.2-2' }}</dd>
+      <dt>Total a pagar</dt>
+      <dd>{{ compra()?.moneda }} {{ d.total | number: '1.2-2' }}</dd>
+      <dt>Estado</dt>
+      <dd>{{ d.cancelado ? 'Cancelada' : 'Pendiente' }}</dd>
+    </dl>
+  }
+</section>

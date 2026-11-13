@@ -5,7 +5,10 @@
     >
     <div class="business">
       <span class="business-avatar">BM</span
-      ><span><b>Bodega Mariela</b><small>Negocio activo</small></span>
+      ><span
+        ><b>{{ business.name() || 'Negocio' }}</b
+        ><small>Negocio activo</small></span
+      >
     </div>
     <button
       class="collapse-button"
@@ -34,9 +37,10 @@
         ><span>≋</span>Cronogramas</a
       >
     </nav>
+    <button type="button" class="collapse-button" (click)="logout()">Cerrar sesión</button>
     <div class="sidebar-foot">
       <span class="user-avatar">MT</span
-      ><span><b>Mariela Torres</b><small>Administradora</small></span>
+      ><span><b>Mi cuenta</b><small>Usuario autenticado</small></span>
     </div>
   </aside>
   @if (menuOpen()) {
@@ -48,8 +52,13 @@
         ☰
       </button>
       <div><small>CUENTIX</small><b>Gestión financiera comercial</b></div>
-      <span class="context-business">Bodega Mariela</span>
+      <span class="context-business">{{ business.name() || 'Negocio' }}</span>
     </header>
-    <main class="content"><router-outlet /></main>
+    <main class="content">
+      @if (business.error()) {
+        <p role="alert">{{ business.error() }}</p>
+      }
+      <router-outlet />
+    </main>
   </div>
 </div>
