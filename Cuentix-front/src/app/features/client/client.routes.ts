@@ -1,9 +1,10 @@
+import { PREVIEW_WITHOUT_LOGIN } from '../../core/config/auth-preview.config';
 import { Routes } from '@angular/router';
 import { sessionGuard } from '../../core/services/session.guard';
 export const CLIENT_ROUTES: Routes = [
   {
     path: '',
-    canActivate: [sessionGuard],
+    canActivate: PREVIEW_WITHOUT_LOGIN ? [] : [sessionGuard],
     data: { roles: [2] },
     loadComponent: () => import('./panel-cliente/panel-cliente').then((m) => m.PanelCliente),
     children: [

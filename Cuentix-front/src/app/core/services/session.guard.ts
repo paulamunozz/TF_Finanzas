@@ -1,8 +1,10 @@
-import { inject } from '@angular/core';
+import { AUTH_PREVIEW } from '../config/auth-preview.config';
+import { inject, isDevMode } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import { AuthService } from './auth.service';
 export const sessionGuard: CanActivateFn = (route) => {
+  if (isDevMode() && inject(AUTH_PREVIEW)) return true;
   const router = inject(Router);
   return inject(AuthService)
     .recuperar()

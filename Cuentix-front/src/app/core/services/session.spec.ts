@@ -1,3 +1,4 @@
+import { AUTH_PREVIEW } from '../config/auth-preview.config';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptors, HttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
@@ -13,12 +14,23 @@ describe('Server session and CSRF', () => {
     sessionStorage.clear();
     TestBed.configureTestingModule({
       providers: [
+        { provide: AUTH_PREVIEW, useValue: false },
         provideRouter([]),
         provideHttpClient(withInterceptors([sessionInterceptor])),
         provideHttpClientTesting(),
         AuthService,
       ],
     });
+  });
+  it('allows preview navigation without requesting a server session', () => {
+    TestBed.overrideProvider(AUTH_PREVIEW, { useValue: true });
+    const result = TestBed.runInInjectionContext(() =>
+      sessionGuard(
+        { data: { roles: [2] } } as unknown as ActivatedRouteSnapshot,
+        {} as RouterStateSnapshot,
+      ),
+    );
+    expect(result).toBe(true);
   });
   afterEach(() => TestBed.inject(HttpTestingController).verify());
   it('attaches credentials and CSRF only to relative API requests', () => {

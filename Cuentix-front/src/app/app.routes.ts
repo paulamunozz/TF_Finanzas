@@ -12,7 +12,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    loadChildren: () => import('./layouts/dashboard.routes').then((m) => m.PRIVATE_ROUTES),
+    loadChildren: () => import('./layouts/dashboard.routes').then((m) => m.DASHBOARD_ROUTES),
   },
   { path: '**', redirectTo: 'auth/login' },
 ];

@@ -1,3 +1,4 @@
+import { AUTH_PREVIEW } from '../../../core/config/auth-preview.config';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -13,6 +14,7 @@ import { PerfilService } from '../../../core/services/perfil.service';
   styleUrl: './editar-perfil.css',
 })
 export class EditarPerfil {
+  private readonly preview = inject(AUTH_PREVIEW);
   private router = inject(Router);
   private perfilService = inject(PerfilService);
   private cdr = inject(ChangeDetectorRef);
@@ -44,7 +46,7 @@ export class EditarPerfil {
     const sesion = sessionStorage.getItem('cuentix_usuario');
 
     if (!sesion) {
-      this.router.navigate(['/login']);
+      if (!this.preview) this.router.navigate(['/login']);
       return;
     }
 
@@ -56,7 +58,7 @@ export class EditarPerfil {
       this.apellido = usuario.apellido ?? '';
       this.telefono = usuario.telefono ?? '';
     } catch {
-      this.router.navigate(['/login']);
+      if (!this.preview) this.router.navigate(['/login']);
     }
   }
 
@@ -187,7 +189,7 @@ export class EditarPerfil {
         sessionStorage.removeItem('cuentix_usuario');
 
         // Regresar al inicio de sesión.
-        this.router.navigate(['/login']);
+        if (!this.preview) this.router.navigate(['/login']);
       },
 
       error: (err: HttpErrorResponse) => {

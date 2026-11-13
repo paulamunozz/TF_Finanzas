@@ -1,12 +1,13 @@
+import { PREVIEW_WITHOUT_LOGIN } from '../core/config/auth-preview.config';
 import { Routes } from '@angular/router';
 import { sessionGuard } from '../core/services/session.guard';
 import { MainLayout } from './dashboard-layout/main-layout';
 
-export const PRIVATE_ROUTES: Routes = [
+export const DASHBOARD_ROUTES: Routes = [
   {
     path: '',
     component: MainLayout,
-    canActivate: [sessionGuard],
+    canActivate: PREVIEW_WITHOUT_LOGIN ? [] : [sessionGuard],
     data: { roles: [1, 3] },
     children: [
       {
