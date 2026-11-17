@@ -25,8 +25,8 @@ public class Compra {
     @Column(name = "tasa_mora")
     private Double tasaMora;
 
-    @Column(name = "total_inicial")
-    private Double totalInicial;
+    @Column(name = "amortizacion")
+    private Double amortizacion;
 
     @Column(name = "total_gracia")
     private Double totalGracia;
