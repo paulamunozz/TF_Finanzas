@@ -19,7 +19,7 @@ import java.util.Date;
 public class CompraDTO {
     private Integer id;
     private Date fecha;
-    private Double totalInicial;
+    private Double amortizacion;
     private Double interesesGracia;
     private Double intereses;
     private Double moras;

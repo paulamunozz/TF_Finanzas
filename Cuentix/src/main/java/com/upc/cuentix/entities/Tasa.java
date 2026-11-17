@@ -18,10 +18,10 @@ public class Tasa {
     private Double porcentaje;
 
     @Column(name = "periodicidad", nullable = false)
-    private Double periodicidad;
+    private Integer periodicidad;
 
     @Column(name = "capitalizacion", nullable = false)
-    private Double capitalizacion;
+    private Integer capitalizacion;
 
     @Column(name = "nominal_efectiva", nullable = false)
     private Boolean nominalEfectiva;
