@@ -1,0 +1,39 @@
+<section class="client-page">
+  <h1>Reporte de compras</h1>
+  <p>Consulta tus compras y cuotas por tienda.</p>
+  @if (cargando()) {
+    <p role="status">Cargando compras...</p>
+  } @else if (error()) {
+    <p role="alert">{{ error() }}</p>
+  } @else if (!filas().length) {
+    <p>No tienes compras registradas.</p>
+  } @else {
+    <div class="tabla-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Tienda</th>
+            <th>Fecha</th>
+            <th>Importe</th>
+            <th>Plazo</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of filas(); track fila.id) {
+            <tr>
+              <td>{{ fila.tienda }}</td>
+              <td>{{ fila.fecha ?? 'Pendiente de finalizar' }}</td>
+              <td>
+                {{ fila.moneda }}
+                {{ fila.total === null ? 'Pendiente' : (fila.total | number: '1.2-2') }}
+              </td>
+              <td>{{ fila.meses }} meses</td>
+              <td><a [routerLink]="['/cliente/reporte/detalle', fila.id]">Ver compra</a></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

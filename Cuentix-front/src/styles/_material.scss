@@ -1,0 +1,43 @@
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme-overrides(
+    (
+      primary: var(--ds-primary),
+      on-primary: #ffffff,
+      surface: var(--ds-surface),
+      on-surface: var(--ds-foreground),
+      outline: var(--ds-border),
+      error: var(--ds-destructive),
+    )
+  );
+}
+
+.mat-mdc-form-field {
+  --mdc-outlined-text-field-container-shape: var(--ds-radius-sm);
+  --mdc-outlined-text-field-outline-color: var(--ds-input);
+  --mdc-outlined-text-field-focus-outline-color: var(--ds-primary);
+}
+
+.mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
+  font-size: var(--ds-font-size-xs);
+}
+
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-shape: var(--ds-radius-lg);
+}
+
+.mat-mdc-menu-panel,
+.mat-mdc-snack-bar-container {
+  border-radius: var(--ds-radius-md) !important;
+}
+
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: var(--ds-foreground);
+  --mdc-snackbar-supporting-text-color: #fff;
+}
+
+.mat-mdc-slide-toggle {
+  --mdc-switch-selected-track-color: var(--ds-primary);
+  --mdc-switch-selected-handle-color: #fff;
+}

@@ -1,0 +1,24 @@
+<section class="client-page">
+  <a routerLink="/cliente/acuerdos">Volver a acuerdos</a>
+  <h1>Detalle del acuerdo</h1>
+  @if (cargando()) {
+    <p role="status">Cargando acuerdo…</p>
+  } @else if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
+  @if (acuerdo(); as a) {
+    <h2>{{ a.tienda }}</h2>
+    <dl>
+      <dt>Tasa</dt>
+      <dd>{{ a.tasa === null ? 'No disponible' : a.tasa + '%' }} {{ a.tipoTasa }}</dd>
+      <dt>Línea de crédito</dt>
+      <dd>{{ a.moneda }} {{ a.linea | number: '1.2-2' }}</dd>
+      <dt>Plazo máximo</dt>
+      <dd>{{ a.meses }} meses</dd>
+      <dt>Día de corte</dt>
+      <dd>{{ a.diaCorte }}</dd>
+      <dt>Día de pago</dt>
+      <dd>{{ a.diaPago }}</dd>
+    </dl>
+  }
+</section>

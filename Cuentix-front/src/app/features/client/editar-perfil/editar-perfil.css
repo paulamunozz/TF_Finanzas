@@ -1,0 +1,85 @@
+:host {
+  display: block;
+  font-family: var(--ds-font-family);
+}
+.editar-contenedor {
+  max-width: 48rem;
+  margin: auto;
+}
+.tarjeta-editar {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  padding: 2rem;
+}
+.formulario {
+  display: grid;
+  gap: 1.25rem;
+}
+.campo {
+  display: grid;
+  grid-template-columns: 11rem 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+label {
+  font-size: 0.875rem;
+  color: var(--ds-foreground);
+}
+input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.75rem;
+}
+.acciones,
+.acciones-confirmacion {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+button {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+}
+.boton-guardar {
+  background: var(--ds-primary);
+  color: white;
+}
+.boton-eliminar,
+.boton-confirmar {
+  color: var(--ds-destructive);
+}
+.boton-volver {
+  justify-self: start;
+}
+.confirmar-eliminacion {
+  display: grid;
+  gap: 1rem;
+  background: var(--ds-surface-muted);
+  padding: 1.5rem;
+  border-radius: var(--ds-radius-md);
+}
+.confirmacion {
+  color: var(--ds-destructive);
+  margin-bottom: 1rem;
+}
+.mensaje-error {
+  color: var(--ds-destructive);
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+@media (max-width: 600px) {
+  .tarjeta-editar {
+    padding: 1rem;
+  }
+  .campo {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}

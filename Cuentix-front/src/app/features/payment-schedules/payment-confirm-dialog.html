@@ -1,0 +1,36 @@
+<h2 mat-dialog-title>Registrar pago completo</h2>
+<mat-dialog-content
+  ><p>{{ data.clientName }} · {{ data.item.purchaseId }}</p>
+  <p>Cuota {{ data.item.number }}/{{ data.item.totalInstallments }}</p>
+  <label class="ui-field"
+    >Fecha efectiva<input
+      type="date"
+      [(ngModel)]="date"
+      [max]="today"
+      [min]="data.item.purchaseDate"
+  /></label>
+  <dl>
+    <div>
+      <dt>Cuota programada</dt>
+      <dd>{{ data.item.installmentAmount | currency: data.currency }}</dd>
+    </div>
+    <div>
+      <dt>Mora a la fecha efectiva</dt>
+      <dd>{{ quote().lateAmount | currency: data.currency }}</dd>
+    </div>
+    <div>
+      <dt>Total a cancelar</dt>
+      <dd>
+        <b>{{ total() | currency: data.currency }}</b>
+      </dd>
+    </div>
+  </dl>
+  @if (!valid()) {
+    <p role="alert">Selecciona una fecha válida, desde la compra hasta hoy.</p>
+  }</mat-dialog-content
+><mat-dialog-actions align="end"
+  ><button mat-button (click)="ref.close()">Cancelar</button
+  ><button mat-flat-button [disabled]="!valid()" (click)="ref.close(date)">
+    Confirmar pago
+  </button></mat-dialog-actions
+>

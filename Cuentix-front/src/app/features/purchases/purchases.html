@@ -1,0 +1,134 @@
+<section class="purchase">
+  <app-page-header
+    title="Registrar compra"
+    description="Crea una compra financiada y valida las condiciones antes de confirmar."
+    ><a mat-stroked-button routerLink="/purchases/history"
+      >Ver compras y cronogramas</a
+    ></app-page-header
+  >
+</section>
+
+@if (error()) {
+  <p role="alert">{{ error() }}</p>
+}
+@if (catalog.error()) {
+  <p role="alert">{{ catalog.error() }}</p>
+}
+<div class="checkout">
+  <main>
+    <section class="card">
+      <header>
+        <span>1</span>
+        <div>
+          <h2>Cliente</h2>
+          <p>Selecciona la cuenta de crédito</p>
+        </div>
+      </header>
+      <label
+        >Cliente<select [ngModel]="clientId()" (ngModelChange)="clientId.set($event)">
+          @for (client of clients(); track client.id) {
+            <option [value]="client.id">{{ client.name }} · DNI {{ client.dni }}</option>
+          }
+        </select></label
+      >
+      <div class="credit">
+        <span
+          ><small>Línea máxima</small><b>{{ creditLine() | currency: currency() }}</b></span
+        ><span
+          ><small>Crédito utilizado</small><b>{{ usedCredit() | currency: currency() }}</b></span
+        ><span
+          ><small>Disponible</small
+          ><b class="available">{{ available() | currency: currency() }}</b></span
+        >
+      </div>
+    </section>
+    <section class="card">
+      <header>
+        <span>2</span>
+        <div>
+          <h2>Productos</h2>
+          <p>Agrega artículos y cantidades</p>
+        </div>
+      </header>
+      @for (item of items(); track item.id) {
+        <div class="item">
+          <span
+            ><b>{{ item.name }}</b
+            ><small>{{ item.price | currency: currency() }} por {{ item.unit }}</small></span
+          ><label
+            >Cantidad<input
+              type="number"
+              min="0"
+              [ngModel]="item.quantity"
+              (ngModelChange)="quantity(item.id, $event)" /></label
+          ><strong>{{ item.price * item.quantity | currency: currency() }}</strong>
+        </div>
+      }
+    </section>
+    <section class="card">
+      <header>
+        <span>3</span>
+        <div>
+          <h2>Condiciones de financiamiento</h2>
+          <p>Define cómo se pagará la compra</p>
+        </div>
+      </header>
+      <div class="fields">
+        <label
+          >Modalidad<select [(ngModel)]="mode">
+            <option value="installments">Cuotas mensuales</option>
+            <option value="single">Pago único</option>
+          </select></label
+        >
+        @if (mode === 'installments') {
+          <label
+            >Número de cuotas<input type="number" [(ngModel)]="months" min="1" [max]="maxMonths()"
+          /></label>
+        }
+        <label>Fecha de compra<input type="date" [(ngModel)]="purchaseDate" [max]="today" /></label>
+      </div>
+      <p class="note">
+        El subtotal no incluye intereses. Al confirmar, el servidor valida el crédito disponible y
+        guarda el cronograma definitivo.
+      </p>
+    </section>
+  </main>
+  <aside class="summary">
+    <h2>Resumen de compra</h2>
+    <div>
+      <span>Subtotal</span><b>{{ total() | currency: currency() }}</b>
+    </div>
+    <div>
+      <span>Modalidad</span><b>{{ mode === 'single' ? 'Pago único' : months + ' cuotas' }}</b>
+    </div>
+    <div>
+      <span>Crédito después</span><b>{{ available() - total() | currency: currency() }}</b>
+    </div>
+    <hr />
+    <div class="total">
+      <span>Subtotal de productos</span><strong>{{ total() | currency: currency() }}</strong>
+    </div>
+    @if (total() > available()) {
+      <p class="error">
+        La compra supera el crédito disponible por
+        {{ total() - available() | currency: currency() }}.
+      </p>
+    }
+    <button
+      mat-flat-button
+      type="button"
+      [disabled]="
+        total() <= 0 ||
+        total() > available() ||
+        !purchaseDate ||
+        purchaseDate > today ||
+        (mode === 'installments' && (months < 1 || months > maxMonths())) ||
+        saving() ||
+        !clientId()
+      "
+      (click)="confirm()"
+    >
+      Confirmar compra</button
+    ><small>La compra y las cuotas se guardan en el servidor.</small>
+  </aside>
+</div>
