@@ -1,0 +1,16 @@
+<main class="admin-page"><header><strong>Cuentix</strong><button mat-button (click)="logout()">Cerrar sesión</button></header>
+<h1>Negocios</h1><button mat-flat-button (click)="edit()">Registrar negocio</button>
+@if(error()){<p role="alert">{{error()}} <button mat-button (click)="load()">Reintentar</button></p>}
+@if(draft; as d){<form #form="ngForm" (ngSubmit)="form.valid && save()" class="admin-form">
+<h2>{{ d.id ? 'Editar negocio' : 'Registrar negocio' }}</h2>
+<label>Razón social<input name="name" required [(ngModel)]="d.razonSocial"></label>
+<label>RUC<input name="ruc" required pattern="[0-9]{11}" [(ngModel)]="d.ruc"></label>
+<label>Giro<select name="giro" required [(ngModel)]="d.giroId">@for(g of giros();track g.id){<option [ngValue]="g.id">{{g.nombre}}</option>}</select></label>
+<label>Dirección<input name="address" required [(ngModel)]="d.direccion"></label>
+<label>Teléfono<input name="phone" required pattern="9[0-9]{8}" [(ngModel)]="d.telefono"></label>
+<label>Contraseña {{ d.id ? '(opcional)' : '' }}<input name="password" type="password" autocomplete="new-password" minlength="8" [required]="!d.id" [(ngModel)]="d.contrasena"></label>
+<button mat-button type="button" (click)="draft=null">Cancelar</button><button mat-flat-button [disabled]="busy() || form.invalid">Guardar</button></form>}
+@if(pending();as row){<p role="alert">¿{{row.estado?'Desactivar':'Reactivar'}} {{row.razonSocial}}? <button mat-button (click)="pending.set(null)">Cancelar</button><button mat-button [disabled]="busy()" (click)="toggle(row)">Confirmar</button></p>}
+@if(rows();as data){<div class="table-scroll"><table class="data-table"><thead><tr><th>Negocio</th><th>RUC</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+@for(row of data;track row.id){<tr><td>{{row.razonSocial}}</td><td>{{row.ruc}}</td><td>{{row.estado?'Activo':'Inactivo'}}</td><td>@if(row.estado){<button mat-button (click)="edit(row)">Editar</button>}<button mat-button (click)="pending.set(row)">{{row.estado?'Desactivar':'Reactivar'}}</button></td></tr>}
+@empty{<tr><td colspan="4">Todavía no hay negocios registrados.</td></tr>}</tbody></table></div>}@else if(!error()){<p role="status">Cargando negocios…</p>}</main>

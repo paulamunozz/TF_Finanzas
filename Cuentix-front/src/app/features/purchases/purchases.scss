@@ -1,0 +1,239 @@
+.purchase {
+  margin-bottom: 22px;
+}
+.steps {
+  display: flex;
+  align-items: center;
+  max-width: 680px;
+  margin: 0 auto 24px;
+  color: var(--ds-muted);
+  font-size: 12px;
+}
+.steps span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--ds-border);
+  border-radius: 50%;
+  background: #fff;
+}
+.steps span.active {
+  border-color: var(--ds-primary);
+  background: var(--ds-primary);
+  color: #fff;
+}
+.steps b {
+  margin-left: 7px;
+  color: var(--ds-muted);
+  font-size: 12px;
+}
+.steps i {
+  flex: 1;
+  height: 1px;
+  margin: 0 12px;
+  background: var(--ds-border);
+}
+.checkout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  align-items: start;
+  gap: 18px;
+}
+.checkout main {
+  display: grid;
+  gap: 16px;
+}
+.card,
+.summary {
+  padding: 22px;
+  border: 1px solid var(--ds-border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--ds-shadow-sm);
+}
+.card header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.card header > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--ds-accent);
+  color: var(--ds-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.card h2,
+.summary h2 {
+  margin: 0;
+  font-size: 15px;
+}
+.card p {
+  margin: 3px 0;
+  color: var(--ds-muted);
+  font-size: 12px;
+}
+label {
+  display: grid;
+  gap: 6px;
+  color: var(--ds-muted);
+  font-size: 12px;
+}
+select,
+input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--ds-input);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+}
+.credit {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 9px;
+  background: var(--ds-background);
+}
+.credit span {
+  display: grid;
+}
+.credit small {
+  color: var(--ds-muted);
+  font-size: 12px;
+}
+.credit b {
+  font-size: 13px;
+}
+.available {
+  color: var(--ds-success);
+}
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px minmax(100px, max-content);
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--ds-border);
+}
+.item > span {
+  display: grid;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.item > label {
+  min-width: 0;
+}
+.item b {
+  font-size: 12px;
+}
+.item small {
+  color: var(--ds-muted);
+  font-size: 12px;
+}
+.item strong {
+  align-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 44px;
+  text-align: right;
+  font-size: 14px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.fields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.note {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #eff6ff !important;
+  color: #1e40af !important;
+}
+.summary {
+  position: sticky;
+  top: 88px;
+  display: grid;
+  gap: 15px;
+}
+.summary > div {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ds-muted);
+  font-size: 12px;
+}
+.summary b {
+  color: var(--ds-foreground);
+}
+.summary hr {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--ds-border);
+}
+.summary .total {
+  align-items: end;
+}
+.summary strong {
+  color: var(--ds-foreground);
+  font-size: 20px;
+}
+.summary button {
+  width: 100%;
+  background: var(--ds-primary);
+  color: #fff;
+}
+.summary small {
+  color: var(--ds-muted);
+  font-size: 12px;
+  text-align: center;
+}
+.error {
+  margin: 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: var(--ds-destructive);
+  font-size: 12px;
+}
+@media (max-width: 900px) {
+  .checkout {
+    grid-template-columns: 1fr;
+  }
+  .summary {
+    position: static;
+  }
+}
+@media (max-width: 600px) {
+  .steps b {
+    display: none;
+  }
+  .credit,
+  .fields {
+    grid-template-columns: 1fr;
+  }
+  .item {
+    grid-template-columns: minmax(0, 1fr) 90px;
+    gap: 12px;
+  }
+  .item strong {
+    grid-column: 1/-1;
+    min-height: 24px;
+  }
+  .card,
+  .summary {
+    padding: 16px;
+  }
+}

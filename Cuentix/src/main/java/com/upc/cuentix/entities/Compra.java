@@ -11,6 +11,27 @@ import java.time.LocalDate;
 @Entity
 @Table(name ="compra")
 public class Compra {
+    @Column(name = "hora_compra")
+    private java.time.LocalTime horaCompra;
+
+    @Column(name = "fecha_corte")
+    private LocalDate fechaCorte;
+
+    @Column(name = "dia_pago_pactado")
+    private Integer diaPagoPactado;
+
+    @Column(name = "dia_corte_pactado")
+    private Integer diaCortePactado;
+
+    @Column(name = "hora_corte_pactada")
+    private java.time.LocalTime horaCortePactada;
+
+    @Column(name = "modalidad")
+    private String modalidad;
+
+    @Column(name = "mora_efectiva")
+    private Boolean moraEfectiva;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_compra", nullable = false)
@@ -25,8 +46,8 @@ public class Compra {
     @Column(name = "tasa_mora")
     private Double tasaMora;
 
-    @Column(name = "amortizacion")
-    private Double amortizacion;
+    @Column(name = "total_inicial")
+    private Double totalInicial;
 
     @Column(name = "total_gracia")
     private Double totalGracia;

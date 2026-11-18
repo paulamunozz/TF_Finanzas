@@ -1,11 +1,5 @@
 package com.upc.cuentix.dto;
 
-import com.upc.cuentix.entities.Cliente;
-import com.upc.cuentix.entities.Moneda;
-import com.upc.cuentix.entities.Negocio;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,31 +11,23 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CuentaCreditoDTO {
-    private Integer id;
+  private Integer id;
 
-    @NotNull
-    private Double deuda;
+  @NotNull private Double deuda;
 
-    @NotNull
-    private Double limite;
+  @NotNull private Double limite;
 
-    @NotNull
-    private Integer maxMeses;
+  @NotNull private Integer maxMeses;
 
-    @NotNull
-    private Double diaCorte;
+  @NotNull private Integer diaCorte;
 
-    @NotNull
-    private Double diaPago;
+  @NotNull private Integer diaPago;
 
-    @NotNull
-    private Integer monedaId;
+  @NotNull private Integer monedaId;
 
-    private Boolean estado;
+  private Boolean estado;
 
-    @NotNull
-    private Integer negocioId;
+  @NotNull private Integer negocioId;
 
-    @NotNull
-    private Integer clienteId;
+  @NotNull private Integer clienteId;
 }

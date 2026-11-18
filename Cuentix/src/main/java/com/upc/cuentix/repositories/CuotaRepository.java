@@ -18,7 +18,7 @@ public interface CuotaRepository extends JpaRepository<Cuota,Integer> {
       AND c.fechaVencimiento <= :fechaLimite
     ORDER BY c.compra.cuentaCredito.cliente.id ASC, c.fechaVencimiento ASC, c.compra.fecha ASC, c.num ASC""")
     List<Cuota> pendientesCliente(@Param("clienteId") Integer clienteId,
-                                  @Param("fechaLimite") LocalDate fechaLimite);
+                                  @Param("fechaLimite") java.util.Date fechaLimite);
 
     @Query("""
     SELECT c FROM Cuota c
@@ -27,7 +27,7 @@ public interface CuotaRepository extends JpaRepository<Cuota,Integer> {
       AND c.fechaVencimiento <= :fechaLimite
     ORDER BY c.compra.cuentaCredito.negocio.id ASC, c.fechaVencimiento ASC, c.compra.fecha ASC, c.num ASC""")
     List<Cuota> pendientesNegocio(@Param("negocioId") Integer negocioId,
-                                  @Param("fechaLimite") LocalDate fechaLimite);
+                                  @Param("fechaLimite") java.util.Date fechaLimite);
 
     boolean existsByCompra_IdAndNumLessThanAndCanceladoFalse(Integer compraId, Integer num);
 }

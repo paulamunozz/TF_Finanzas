@@ -1,0 +1,141 @@
+<div class="editar-contenedor">
+  <h1>Editar perfil</h1>
+  <div class="contenido-editar">
+    @if (confirmarEliminacion) {
+      <div class="confirmacion">¿Seguro que desea eliminar su cuenta?</div>
+    }
+
+    <div class="tarjeta-editar">
+      <form class="formulario" (ngSubmit)="guardarDatos()" novalidate>
+        <div class="campo">
+          <label for="dni">DNI</label>
+          <input id="dni" name="dni" type="text" [value]="dni" readonly />
+        </div>
+
+        <div class="campo">
+          <label for="nombre">Nombre</label>
+          <input id="nombre" name="nombre" type="text" [(ngModel)]="nombre" required />
+        </div>
+
+        <div class="campo">
+          <label for="apellido">Apellido</label>
+          <input id="apellido" name="apellido" type="text" [(ngModel)]="apellido" required />
+        </div>
+
+        <div class="campo">
+          <label for="contrasenaActual"> Contraseña actual </label>
+
+          <input
+            id="contrasenaActual"
+            name="contrasenaActual"
+            type="password"
+            [(ngModel)]="contrasenaActual"
+            autocomplete="current-password"
+            placeholder="Solo para cambiar contraseña"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="contrasena">Nueva contraseña</label>
+          <input
+            id="contrasena"
+            name="contrasena"
+            type="password"
+            [(ngModel)]="nuevaContrasena"
+            autocomplete="new-password"
+            placeholder="Opcional"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="confirmar"> Confirmar contraseña </label>
+          <input
+            id="confirmar"
+            name="confirmar"
+            type="password"
+            [(ngModel)]="confirmarContrasena"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="telefono">Teléfono</label>
+          <input
+            id="telefono"
+            name="telefono"
+            type="tel"
+            maxlength="9"
+            inputmode="numeric"
+            [(ngModel)]="telefono"
+            required
+          />
+        </div>
+
+        @if (error) {
+          <div class="mensaje-error" role="alert">
+            {{ error }}
+          </div>
+        }
+
+        @if (aviso) {
+          <div class="mensaje-aviso" role="status">
+            {{ aviso }}
+          </div>
+        }
+
+        <div class="acciones">
+          <button type="button" class="boton-eliminar" (click)="eliminarCuenta()">
+            Eliminar cuenta
+          </button>
+
+          <button type="submit" class="boton-guardar" [disabled]="guardando">
+            {{ guardando ? 'GUARDANDO...' : 'Guardar datos' }}
+          </button>
+        </div>
+
+        @if (confirmarEliminacion) {
+          <div class="confirmar-eliminacion">
+            <label for="contrasenaEliminar"> Ingrese su contraseña actual para confirmar: </label>
+
+            <input
+              id="contrasenaEliminar"
+              name="contrasenaEliminar"
+              type="password"
+              [(ngModel)]="contrasenaEliminar"
+              autocomplete="current-password"
+              placeholder="Contraseña actual"
+            />
+
+            <p class="nota-seguridad">
+              Al continuar, su cuenta será desactivada y no podrá volver a iniciar sesión.
+            </p>
+
+            <div class="acciones-confirmacion">
+              <button
+                type="button"
+                class="boton-cancelar"
+                [disabled]="eliminando"
+                (click)="cancelarEliminacion()"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                class="boton-confirmar"
+                [disabled]="eliminando || !contrasenaEliminar.trim()"
+                (click)="confirmarEliminarCuenta()"
+              >
+                {{ eliminando ? 'ELIMINANDO...' : 'Sí, eliminar cuenta' }}
+              </button>
+            </div>
+          </div>
+        }
+
+        <button type="button" class="boton-volver" (click)="volverPerfil()">
+          Volver a Mi perfil
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

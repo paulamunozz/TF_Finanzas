@@ -11,14 +11,19 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UsuarioDTO {
-    private Integer id;
+  private Integer id;
 
-    @NotBlank(message = "Ingrese el código")
-    private String codigo;
+  @NotBlank(message = "Ingrese el código")
+  private String codigo;
 
-    @NotBlank(message = "Ingrese la contraseña")
-    private String contrasena;
+  @NotBlank(message = "Ingrese la contraseña")
+  private String contrasena;
 
-    private Integer rolId;
-    private Boolean estado;
+  private Integer rolId;
+  private Boolean estado;
+  private String nombre;
+  private String apellido;
+  private String telefono;
+
+  private String csrfToken;
 }

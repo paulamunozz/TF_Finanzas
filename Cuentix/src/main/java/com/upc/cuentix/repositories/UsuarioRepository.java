@@ -6,6 +6,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
-    boolean existsByCodigoAndEstado(String codigo, Boolean estado);
-    Usuario findByCodigoAndEstado(String codigo, Boolean estado);
+  boolean existsByCodigo(String codigo);
+
+  boolean existsByCodigoAndEstado(String codigo, Boolean estado);
+
+  Usuario findByCodigoAndEstado(String codigo, Boolean estado);
 }
