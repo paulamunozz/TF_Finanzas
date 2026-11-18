@@ -12,5 +12,4 @@ public interface ICuotaService{
     List<CuotaDTO> cuotasPorCompra(Integer idCompra);
     List<CuotaDTO> cuotasPorClienteMes(Integer idCliente);
     List<CuotaDTO> cuotasPorNegocioMes(Integer idNegocio);
-    Double calculoMoras(Double C, Double TEA, LocalDate fechaVencimiento);
 }

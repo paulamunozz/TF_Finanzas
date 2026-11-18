@@ -61,14 +61,14 @@ export class InstallmentDetail {
         },
       })
       .afterClosed()
-      .subscribe((date?: string) => {
-        if (date)
-          this.repository.cancel(state.item.id, date).subscribe({
+      .subscribe((result?: { date: string; amount: number }) => {
+        if (result)
+          this.repository.cancel(state.item.id, result.date, result.amount).subscribe({
             next: () => {
               this.refresh.update((v) => v + 1);
               this.snack.open('Pago completo registrado', 'Cerrar', { duration: 3000 });
             },
-            error: (error) => this.snack.open(error.message, 'Cerrar', { duration: 4000 }),
+            error: (error) => this.snack.open(error.error?.message ?? 'No se pudo registrar el pago.', 'Cerrar', { duration: 4000 }),
           });
       });
   }

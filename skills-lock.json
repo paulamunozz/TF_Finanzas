@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "skills": {
+    "frontend-design-review": {
+      "source": "microsoft/skills",
+      "commit": "b35d2c60fac796bfd2cfd14ad3f550c73e92d9bb",
+      "sourceType": "github",
+      "skillPath": ".github/skills/frontend-design-review/SKILL.md",
+      "computedHash": "79e26e53651e90a60c1b36284cf8edf5c7f0fba9e25058b47b2adf81f7e0bdef"
+    },
+    "oma-backend": {
+      "source": "first-fluke/fullstack-starter",
+      "commit": "1712e7a859c7edf38c578148a69ff39fe32fb92e",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/oma-backend/SKILL.md",
+      "computedHash": "2c68755f9c5a300fac34269e12ead1aaf1969fa86a65d764700d6bd3a5142e2a"
+    },
+    "oma-frontend": {
+      "source": "first-fluke/fullstack-starter",
+      "commit": "1712e7a859c7edf38c578148a69ff39fe32fb92e",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/oma-frontend/SKILL.md",
+      "computedHash": "245f7602984623db8e686bb974a24da2bafdd95873553ee9f94a55b0db86d314"
+    }
+  }
+}

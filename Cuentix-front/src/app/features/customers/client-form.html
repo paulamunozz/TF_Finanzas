@@ -210,9 +210,9 @@
               "
               type="number"
               formControlName="cutOffDay"
-            /><small class="field-hint">Entre 1 y 28</small>
+            /><small class="field-hint">Entre 1 y 31</small>
             @if (form.controls.cutOffDay.invalid && form.controls.cutOffDay.touched) {
-              <small class="field-error" role="alert">Debe estar entre 1 y 28</small>
+              <small class="field-error" role="alert">Debe estar entre 1 y 31</small>
             }
           </div>
         </div>
@@ -226,9 +226,9 @@
               "
               type="number"
               formControlName="paymentDay"
-            /><small class="field-hint">Entre 1 y 28</small>
+            /><small class="field-hint">Entre 1 y 31</small>
             @if (form.controls.paymentDay.invalid && form.controls.paymentDay.touched) {
-              <small class="field-error" role="alert">Debe estar entre 1 y 28</small>
+              <small class="field-error" role="alert">Debe estar entre 1 y 31</small>
             }
           </div>
         </div>
@@ -237,11 +237,13 @@
     @if (error()) {
       <p class="error" role="alert">{{ error() }}</p>
     }
+    <label class="ui-field">Hora de corte (opcional)<input type="time" formControlName="cutoffTime" /></label>
     <footer>
       <a mat-button routerLink="/clients">Cancelar</a
       ><button mat-flat-button type="submit" [disabled]="saving()">
         {{ saving() ? 'Guardando…' : id ? 'Guardar cambios' : 'Registrar cliente' }}
       </button>
     </footer>
-  </form>
+  
+</form>
 </section>

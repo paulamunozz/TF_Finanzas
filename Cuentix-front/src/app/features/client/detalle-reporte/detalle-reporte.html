@@ -8,7 +8,7 @@
   }
   @if (detalle(); as d) {
     <h2>{{ d.tienda }}</h2>
-    <p>{{ d.moneda }} {{ d.total | number: '1.2-2' }} ? {{ d.fecha | date: 'dd/MM/yyyy' }}</p>
+    <p>{{ d.moneda }} {{ d.total | number: '1.2-2' }} · {{ d.fecha | date: 'dd/MM/yyyy' }}</p>
     <h2>Productos adquiridos</h2>
     <ul>
       @for (p of d.productos; track p.id) {

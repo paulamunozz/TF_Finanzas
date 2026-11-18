@@ -4,7 +4,7 @@
 }
 .metrics {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 .metrics article,
@@ -194,3 +194,10 @@
     gap: 8px;
   }
 }
+
+.metrics .principal { background: var(--ds-foreground); color: white; }
+.metrics .principal p, .metrics .principal small { color: #d9e5f5; }
+.metrics p { margin-top: 0; }
+.metrics strong { font-size: clamp(1.5rem, 2.6vw, 2.25rem); overflow-wrap: anywhere; }
+.currency-selector { display:flex; gap:.75rem; align-items:center; justify-self:end; }
+.currency-selector select { padding:.5rem; border:1px solid var(--ds-input); border-radius:var(--ds-radius-sm); }

@@ -8,11 +8,7 @@ export class ScheduleQuery {
   readonly repository = inject(PAYMENT_REPOSITORY);
   private readonly clients = inject(ClientService);
   customer(id: string) {
-    return forkJoin({
-      client: this.clients.getById(id),
-      items: this.repository.getByClientId(id),
-      purchases: this.repository.getPurchases(),
-    }).pipe(
+    return this.repository.getStatement(id).pipe(
       map((state) => {
         const purchases = state.purchases.filter((p) => p.clientId === id);
         if (new Set(purchases.map((p) => p.currency)).size > 1)

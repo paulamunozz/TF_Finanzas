@@ -1,6 +1,6 @@
 .app-shell {
   display: grid;
-  grid-template-columns: 250px 1fr;
+  grid-template-columns: 232px minmax(0, 1fr);
   min-height: 100vh;
 }
 .sidebar {
@@ -126,7 +126,7 @@ nav a.active {
   z-index: 20;
   display: flex;
   align-items: center;
-  height: 68px;
+  height: 56px;
   padding: 0 32px;
   border-bottom: 1px solid var(--ds-border);
   background: rgba(255, 255, 255, 0.92);
@@ -172,11 +172,13 @@ nav a.active {
   .sidebar {
     position: fixed;
     left: 0;
+    visibility: hidden;
     transform: translateX(-100%);
     width: 250px;
     transition: transform 0.18s ease;
   }
   .sidebar.open {
+    visibility: visible;
     transform: none;
   }
   .backdrop {

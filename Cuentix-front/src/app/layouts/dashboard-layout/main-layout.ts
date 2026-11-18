@@ -1,3 +1,4 @@
+import { CatalogStore } from '../../core/data-access/catalog.store';
 import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
 import { BusinessContext } from '../../core/services/business-context.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -7,12 +8,14 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 @Component({
   selector: 'app-main-layout',
   imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  providers: [CatalogStore],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainLayout {
   protected readonly business = inject(BusinessContext);
+  constructor() { this.business.load(); }
   private auth = inject(AuthService);
   private router = inject(Router);
   protected logout() {

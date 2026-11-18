@@ -1,10 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReporteService, CompraCliente } from '../../../core/services/reporte.service';
 @Component({
   selector: 'app-reporte',
-  imports: [DecimalPipe, RouterLink],
+  imports: [DatePipe, DecimalPipe, RouterLink],
   templateUrl: './reporte.html',
   styleUrl: './reporte.css',
 })

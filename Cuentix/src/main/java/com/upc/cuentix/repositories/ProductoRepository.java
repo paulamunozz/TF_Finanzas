@@ -9,6 +9,7 @@ import java.util.List;
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Integer> {
     boolean existsByIdAndEstado(Integer id, Boolean estado);
+    List<Producto> findByNegocio_Id(Integer id);
     List<Producto> findByEstado(Boolean estado);
     List<Producto> findByNegocio_IdAndEstado(Integer id, Boolean estado);
 }

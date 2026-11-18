@@ -30,6 +30,7 @@ public class NegocioService implements INegocioService {
   @Override
   @Transactional
   public NegocioDTO registrar(NegocioDTO dto) {
+    access.requireAdmin();
     if (dto.getRuc() == null || !dto.getRuc().matches("[0-9]{11}"))
       throw new IllegalArgumentException("RUC invalido");
     if (dto.getContrasena() == null
@@ -138,6 +139,20 @@ public class NegocioService implements INegocioService {
         .filter(n -> access.ownsBusiness(n.getId()))
         .map(this::convertir)
         .collect(Collectors.toList());
+  }
+
+  public List<NegocioDTO> adminList() {
+    access.requireAdmin();
+    return negocioRepository.findAll().stream().map(this::convertir).toList();
+  }
+
+  @Transactional
+  public NegocioDTO setActive(Integer id, boolean active) {
+    access.requireAdmin();
+    Negocio n = negocioRepository.findById(id).orElseThrow();
+    n.setEstado(active);
+    n.getUsuario().setEstado(active);
+    return convertir(n);
   }
 
   private Giro buscarGiro(Integer idGiro) {

@@ -10,6 +10,12 @@ public final class FinancialMath {
 
   private FinancialMath() {}
 
+  public static double lateCharge(double principal, Double annual, int days, Boolean effective) {
+    double rate = annual == null ? 0 : annual;
+    return Boolean.TRUE.equals(effective) ? money(principal * Math.expm1(Math.log1p(rate) * days / 360.0)).doubleValue()
+        : lateAmount(principal, rate * 100, days);
+  }
+
   public static double lateAmount(double amount, double annualPercent, int days) {
     if (amount < 0
         || annualPercent < 0
@@ -88,6 +94,22 @@ public final class FinancialMath {
   private static LocalDate day(YearMonth month, int day) {
     if (day < 1 || day > 31) throw new IllegalArgumentException("Dia invalido");
     return month.atDay(Math.min(day, month.lengthOfMonth()));
+  }
+
+  public static int commercialDays(LocalDate from, LocalDate to) {
+    return (to.getYear() - from.getYear()) * 360 + (to.getMonthValue() - from.getMonthValue()) * 30
+        + Math.min(30, to.getDayOfMonth()) - Math.min(30, from.getDayOfMonth());
+  }
+
+  public static LocalDate monthlyDue(LocalDate start, int months, int paymentDay) {
+    return day(YearMonth.from(start).plusMonths(months), paymentDay);
+  }
+
+  public static LocalDate cutoffDate(java.time.LocalDateTime purchase, int cutoff, java.time.LocalTime time) {
+    YearMonth month = YearMonth.from(purchase);
+    LocalDate close = day(month, cutoff);
+    boolean next = time == null ? purchase.toLocalDate().isAfter(close) : !purchase.isBefore(close.atTime(time));
+    return next ? day(month.plusMonths(1), cutoff) : close;
   }
 
   public static LocalDate paymentDate(LocalDate purchase, int cutoff, int payment) {

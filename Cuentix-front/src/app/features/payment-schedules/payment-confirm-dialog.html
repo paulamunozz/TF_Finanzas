@@ -5,18 +5,18 @@
   <label class="ui-field"
     >Fecha efectiva<input
       type="date"
-      [(ngModel)]="date"
+      [ngModel]="date" (ngModelChange)="load($event)"
       [max]="today"
       [min]="data.item.purchaseDate"
   /></label>
-  <dl>
+  @if (quote(); as amount) { <dl>
     <div>
       <dt>Cuota programada</dt>
       <dd>{{ data.item.installmentAmount | currency: data.currency }}</dd>
     </div>
     <div>
       <dt>Mora a la fecha efectiva</dt>
-      <dd>{{ quote().lateAmount | currency: data.currency }}</dd>
+      <dd>{{ amount.lateAmount | currency: data.currency }}</dd>
     </div>
     <div>
       <dt>Total a cancelar</dt>
@@ -24,13 +24,13 @@
         <b>{{ total() | currency: data.currency }}</b>
       </dd>
     </div>
-  </dl>
+  </dl> } @else if (error()) { <p role="alert">{{ error() }} <button mat-button (click)="load(date)">Reintentar</button></p> } @else if (valid()) { <p role="status">Consultando total…</p> }
   @if (!valid()) {
     <p role="alert">Selecciona una fecha válida, desde la compra hasta hoy.</p>
   }</mat-dialog-content
 ><mat-dialog-actions align="end"
   ><button mat-button (click)="ref.close()">Cancelar</button
-  ><button mat-flat-button [disabled]="!valid()" (click)="ref.close(date)">
+  ><button mat-flat-button [disabled]="!quote()" (click)="ref.close({date: date, amount: total()})">
     Confirmar pago
   </button></mat-dialog-actions
 >

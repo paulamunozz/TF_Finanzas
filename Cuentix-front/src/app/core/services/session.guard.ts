@@ -12,7 +12,7 @@ export const sessionGuard: CanActivateFn = (route) => {
       map((u) =>
         (route.data['roles'] as number[]).includes(u.rolId ?? 0)
           ? true
-          : router.createUrlTree([u.rolId === 2 ? '/cliente/reporte' : '/dashboard']),
+          : router.createUrlTree([u.rolId === 1 ? '/admin/negocios' : u.rolId === 2 ? '/cliente/reporte' : '/dashboard']),
       ),
       catchError(() => {
         sessionStorage.removeItem('cuentix_usuario');

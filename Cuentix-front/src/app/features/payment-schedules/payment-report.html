@@ -9,8 +9,7 @@
           [routerLink]="purchaseId ? ['/clients', data.client.id, 'payments'] : ['/clients']"
           >{{
             purchaseId
-              ? 'Cronograma del
-      cliente'
+              ? 'Cronograma del cliente'
               : 'Volver a clientes'
           }}</a
         ></app-page-header
@@ -18,7 +17,7 @@
       <div class="account-context">
         <b>{{ data.client.name }}</b
         ><span>DNI {{ data.client.dni }}</span
-        ><span>Bodega Mariela</span><span>{{ data.client.currency }}</span>
+        ><span>{{ data.client.currency }}</span><span>Disponible {{ (data.client.creditLine - (data.client.usedCredit ?? 0)) | currency:data.client.currency }}</span>
       </div>
       @if (purchaseId) {
         @for (purchase of data.purchases; track purchase.id) {
@@ -33,8 +32,7 @@
               ><b
                 >{{
                   purchase.mode === 'single'
-                    ? 'Pago
-        único'
+                    ? 'Pago único'
                     : 'Cuotas mensuales'
                 }}
                 · {{ purchase.installments }} cuota(s)</b
@@ -118,8 +116,8 @@
               <th>Compra</th>
               <th>Vencimiento</th>
               @if (purchaseId) {
-                <th>Interés</th>
-                <th>Amortización</th>
+                <th>Saldo inicial</th><th>Interés</th>
+                <th>Amortización</th><th>Saldo final</th>
               }
               <th>Programada</th>
               <th>Mora</th>
@@ -140,12 +138,13 @@
                 <td data-label="Fecha compra">{{ item.purchaseDate | date: 'dd/MM/yyyy' }}</td>
                 <td data-label="Vencimiento">{{ item.dueDate | date: 'dd/MM/yyyy' }}</td>
                 @if (purchaseId) {
+                  <td data-label="Saldo inicial">{{balances().get(item.id)?.opening | currency:data.client.currency}}</td>
                   <td data-label="Interés">
                     {{ item.interest | currency: data.client.currency }}
                   </td>
                   <td data-label="Amortización">
                     {{ item.amortization | currency: data.client.currency }}
-                  </td>
+                  </td><td data-label="Saldo final">{{balances().get(item.id)?.closing | currency:data.client.currency}}</td>
                 }
                 <td data-label="Programada">
                   {{ item.installmentAmount | currency: data.client.currency }}

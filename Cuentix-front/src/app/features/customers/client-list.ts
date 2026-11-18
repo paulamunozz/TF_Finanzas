@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
@@ -56,15 +57,23 @@ export class ClientList {
       .slice(0, 2)
       .join('');
   }
+  private readonly http = inject(HttpClient);
+  protected showInactive = false;
+  protected activate(id: string) {
+    this.http.put('/api/clients/'+encodeURIComponent(id)+'/activate',{}).subscribe({
+      next: () => this.retry(), error: () => this.snackBar.open('No se pudo reactivar la cuenta.', 'Cerrar')});
+  }
   private readonly service = inject(ClientService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly refresh$ = new Subject<void>();
   protected readonly state$ = this.refresh$.pipe(
     startWith(undefined),
-    switchMap(() => this.service.getAll().pipe(catchError(() => of(null)))),
+    switchMap(() => (this.showInactive ? this.http.get<Client[]>('/api/clients?includeInactive=true') : this.service.getAll()).pipe(catchError(() => { this.error.set(true); return of(null); }))),
   );
 
+  protected readonly error = signal(false);
+  protected retry() { this.error.set(false); this.refresh$.next(); }
   protected remove(client: Client): void {
     this.dialog
       .open(DeleteClientDialog, { data: client })
@@ -73,6 +82,7 @@ export class ClientList {
         if (confirmed) {
           this.service.delete(client.id).subscribe({
             next: () => {
+              this.page.set(0);
               this.refresh$.next();
               this.snackBar.open('Cliente eliminado correctamente', 'Cerrar', { duration: 3000 });
             },

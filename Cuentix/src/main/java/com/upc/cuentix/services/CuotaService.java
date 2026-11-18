@@ -1,97 +1,56 @@
 package com.upc.cuentix.services;
 
+import com.upc.cuentix.config.ResourceAccess;
 import com.upc.cuentix.dto.CuotaDTO;
-import com.upc.cuentix.entities.Compra;
-import com.upc.cuentix.entities.CuentaCredito;
 import com.upc.cuentix.entities.Cuota;
 import com.upc.cuentix.instances.ICuotaService;
-import com.upc.cuentix.repositories.CompraRepository;
-import com.upc.cuentix.repositories.CuentaCreditoRepository;
 import com.upc.cuentix.repositories.CuotaRepository;
-import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.temporal.ChronoUnit;
+import java.time.*;
 import java.util.List;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CuotaService implements ICuotaService {
-    @Autowired private CuotaRepository cuotaRepository;
-    @Autowired private CompraRepository compraRepository;
-    @Autowired private CuentaCreditoRepository ccRepository;
-    @Autowired private ModelMapper modelMapper;
+    private final CuotaRepository cuotas;
+    private final ResourceAccess access;
+    private final BusinessApplicationService business;
+    private static final ZoneId LIMA = ZoneId.of("America/Lima");
 
     @Transactional
-    @Override
-    public CuotaDTO pagarCuota(Integer idCuota) {
-        Cuota cuota = cuotaRepository.findById(idCuota).get();
-        if (cuotaRepository.existsByCompra_IdAndNumLessThanAndCanceladoFalse(
-                cuota.getCompra().getId(), cuota.getNum()))
-            throw new RuntimeException("Debe pagar primero las cuotas anteriores");
-
-        cuota.setMoras(calculoMoras(cuota.getTotal(), cuota.getCompra().getTasaMora(), cuota.getFechaVencimiento()));
-        cuota.setCancelado(true);
-        cuota.setFechaPago(LocalDate.now());
-        cuotaRepository.save(cuota);
-
-        Compra compra = cuota.getCompra();
-        compra.setMoras(compra.getMoras() + cuota.getMoras());
-        compraRepository.save(compra);
-
-        CuentaCredito cc = compra.getCuentaCredito();
-        cc.setDeuda(cc.getDeuda() - cuota.getTotal());
-        ccRepository.save(cc);
-
-        return modelMapper.map(cuota, CuotaDTO.class);
+    public CuotaDTO pagarCuota(Integer id) {
+        business.cancel(id, new BusinessApplicationService.PaymentRequest(LocalDate.now(LIMA).toString(), null, null));
+        return view(cuotas.findById(id).orElseThrow(), false);
     }
 
-    @Override
-    public List<CuotaDTO> cuotasPorCompra(Integer idCompra) {
-        return cuotaRepository.findByCompra_Id(idCompra)
-                .stream().map(cuota -> modelMapper.map(cuota, CuotaDTO.class))
-                .collect(Collectors.toList());
+    public List<CuotaDTO> cuotasPorCompra(Integer id) {
+        access.purchase(id);
+        return cuotas.findByCompra_Id(id).stream().map(q -> view(q, false)).toList();
     }
 
-    @Override
-    public List<CuotaDTO> cuotasPorClienteMes(Integer idCliente) {
-        return cuotaRepository.pendientesCliente(idCliente, YearMonth.now().atEndOfMonth()).stream()
-                .map(c -> {
-                    CuotaDTO dto = modelMapper.map(c, CuotaDTO.class);
-                    double mora = calculoMoras(c.getTotal(), c.getCompra().getTasaMora(),
-                            c.getFechaVencimiento());
-                    dto.setMoras(mora);
-                    dto.setTotal(c.getTotal() + mora);
-                    return dto;
-                })
-                .collect(Collectors.toList());
+    public List<CuotaDTO> cuotasPorClienteMes(Integer id) {
+        access.client(id);
+        return cuotas.pendientesCliente(id, endOfMonth()).stream()
+                .filter(q -> access.ownsBusiness(q.getCompra().getCuentaCredito().getNegocio().getId()))
+                .map(q -> view(q, true)).toList();
     }
 
-    @Override
-    public List<CuotaDTO> cuotasPorNegocioMes(Integer idNegocio) {
-        LocalDate fechaLimite = LocalDate.now().plusMonths(1);
-        return cuotaRepository.pendientesNegocio(idNegocio, YearMonth.now().atEndOfMonth()).stream()
-                .map(c -> {
-                    CuotaDTO dto = modelMapper.map(c, CuotaDTO.class);
-                    double mora = calculoMoras(c.getTotal(), c.getCompra().getTasaMora(),
-                            c.getFechaVencimiento());
-                    dto.setMoras(mora);
-                    dto.setTotal(c.getTotal() + mora);
-                    return dto;
-                })
-                .collect(Collectors.toList());
+    public List<CuotaDTO> cuotasPorNegocioMes(Integer id) {
+        access.business(id);
+        return cuotas.pendientesNegocio(id, endOfMonth()).stream().map(q -> view(q, true)).toList();
     }
 
-    @Override
-    public Double calculoMoras(Double C, Double TED, LocalDate fechaVencimiento) {
-        if (LocalDate.now().isAfter(fechaVencimiento)) {
-            Long n = ChronoUnit.DAYS.between(fechaVencimiento, LocalDate.now());
-            return C * (Math.pow(1 + TED, n) -1);
-        }
-        return 0.0;
+    private java.util.Date endOfMonth() {
+        return java.sql.Date.valueOf(YearMonth.now(LIMA).atEndOfMonth());
+    }
+
+    private CuotaDTO view(Cuota q, boolean includeLate) {
+        var payment = business.quoteForReport(q);
+        return new CuotaDTO(q.getId(), q.getFechaVencimiento(), q.getFechaPago(), q.getNum(),
+                payment.amortization(), q.getIntereses(), payment.lateAmount(),
+                q.getTotal() + (includeLate ? payment.lateAmount() : 0), q.getCancelado(), q.getCompra().getId());
     }
 }

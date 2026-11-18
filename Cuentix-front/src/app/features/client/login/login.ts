@@ -23,24 +23,6 @@ export class Login {
   aviso: string = '';
   cargando: boolean = false;
 
-  // VALIDAR RUC
-  validarRUC(ruc: string): boolean {
-    if (!/^\d{11}$/.test(ruc)) {
-      return false;
-    }
-
-    const pesos = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
-    let suma = 0;
-
-    for (let i = 0; i < 10; i++) {
-      suma += Number(ruc[i]) * pesos[i];
-    }
-
-    const digitoCalculado = (11 - (suma % 11)) % 10;
-
-    return digitoCalculado === Number(ruc[10]);
-  }
-
   // INICIAR SESIÓN
   iniciarSesion(): void {
     if (this.cargando) {
@@ -58,24 +40,6 @@ export class Login {
       return;
     }
 
-    // Validar que solo tenga números
-    if (!/^\d+$/.test(documento)) {
-      this.error = 'El DNI o RUC solo debe contener números.';
-      return;
-    }
-
-    // Validar longitud del documento
-    if (documento.length !== 8 && documento.length !== 11) {
-      this.error = 'El DNI debe tener 8 dígitos y el RUC 11 dígitos.';
-      return;
-    }
-
-    // Validar dígito verificador del RUC
-    if (documento.length === 11 && !this.validarRUC(documento)) {
-      this.error = 'El número de RUC ingresado no es válido.';
-      return;
-    }
-
     // ENVIAR DATOS AL BACKEND
     this.cargando = true;
 
@@ -84,20 +48,7 @@ export class Login {
         this.cargando = false;
         this.error = '';
 
-        sessionStorage.setItem(
-          'cuentix_usuario',
-          JSON.stringify({
-            id: usuario.id,
-            codigo: usuario.codigo,
-            rolId: usuario.rolId,
-            nombre: usuario.nombre ?? '',
-            apellido: usuario.apellido ?? '',
-            telefono: usuario.telefono ?? '',
-            csrfToken: usuario.csrfToken,
-          }),
-        );
-
-        this.router.navigate([usuario.rolId === 2 ? '/cliente/reporte' : '/dashboard']);
+        this.router.navigate([usuario.rolId === 1 ? '/admin/negocios' : usuario.rolId === 2 ? '/cliente/reporte' : '/dashboard']);
 
         // Notificar a Angular que debe actualizar la pantalla
         this.cdr.markForCheck();

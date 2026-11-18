@@ -23,7 +23,7 @@
           @for (fila of filas(); track fila.id) {
             <tr>
               <td>{{ fila.tienda }}</td>
-              <td>{{ fila.fecha ?? 'Pendiente de finalizar' }}</td>
+              <td>{{ fila.fecha ? (fila.fecha | date:'dd/MM/yyyy') : 'Pendiente de finalizar' }}</td>
               <td>
                 {{ fila.moneda }}
                 {{ fila.total === null ? 'Pendiente' : (fila.total | number: '1.2-2') }}

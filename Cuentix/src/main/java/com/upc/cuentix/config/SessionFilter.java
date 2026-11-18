@@ -29,8 +29,7 @@ public class SessionFilter extends OncePerRequestFilter {
                     "/api/auth/login",
                     "/api/auth/register",
                     "/login",
-                    "/registrarCliente",
-                    "/registrarNegocio")
+                    "/registrarCliente")
                 .contains(p)
             && "POST".equals(req.getMethod());
     if (publicAuth) {
@@ -50,7 +49,7 @@ public class SessionFilter extends OncePerRequestFilter {
     }
     int rol = u.getRol().getId();
     boolean own = p.startsWith("/api/cliente/");
-    if ((own && rol != 2)
+    if ((p.startsWith("/api/admin/") && rol != 1) || (own && rol != 2)
         || (!own
             && !p.equals("/api/auth/session")
             && !p.equals("/api/logout")

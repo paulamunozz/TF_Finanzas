@@ -5,8 +5,12 @@ export class BusinessContext {
   readonly id = signal('');
   readonly name = signal('');
   readonly error = signal('');
-  constructor() {
-    inject(HttpClient, { optional: true })
+  private http = inject(HttpClient, { optional: true });
+  load() {
+    this.id.set('');
+    this.name.set('');
+    this.error.set('');
+    this.http
       ?.get<{ id: string; name: string }>('/api/business/context')
       .subscribe({
         next: (c) => {

@@ -37,6 +37,7 @@ export class ClientForm {
     maxMonths: [1, [Validators.required, Validators.min(1), Validators.max(60)]],
     creditLine: [0, [Validators.required, Validators.min(0.01)]],
     cutOffDay: [1, [Validators.required, Validators.min(1), Validators.max(31)]],
+    cutoffTime: [''],
     paymentDay: [1, [Validators.required, Validators.min(1), Validators.max(31)]],
   });
   protected readonly saving = signal(false);

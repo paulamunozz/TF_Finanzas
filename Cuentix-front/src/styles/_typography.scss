@@ -1,6 +1,6 @@
 :root {
   --ds-font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
-  --ds-font-heading: 'Poppins', system-ui, sans-serif;
+  --ds-font-heading: var(--ds-font-family);
 }
 
 html {

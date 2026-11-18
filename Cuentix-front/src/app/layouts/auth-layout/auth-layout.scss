@@ -29,3 +29,7 @@
     color: var(--ds-muted);
   }
 }
+
+.auth-header h1 {display:flex;gap:.6rem;align-items:center;color:var(--ds-foreground);font-size:1.35rem;}
+.auth-header h1 span {display:grid;place-items:center;width:2.1rem;height:2.1rem;background:var(--ds-primary);color:white;border-radius:var(--ds-radius-sm);}
+.auth-header {border-bottom:1px solid var(--ds-border);padding-bottom:1rem;}
