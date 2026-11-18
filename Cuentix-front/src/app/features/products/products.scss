@@ -1,5 +1,6 @@
 .products {
   display: grid;
+  grid-template-columns:minmax(0,1fr);
   gap: 24px;
 }
 app-page-header button,
@@ -9,7 +10,7 @@ form button {
 }
 form {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,14rem),1fr));
   align-items: end;
   gap: 12px;
   padding: 18px;
@@ -50,40 +51,9 @@ input {
   border-radius: 12px;
   background: #fff;
 }
-.row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 0.7fr;
-  align-items: center;
-  min-width: 760px;
-  min-height: 62px;
-  padding: 0 20px;
-  border-bottom: 1px solid var(--ds-border);
-  font-size: 14px;
-}
-.row:last-child {
-  border: 0;
-}
-.head {
-  min-height: 44px;
-  background: var(--ds-surface-muted);
-  color: var(--ds-muted);
-  font-size: 12px;
-  text-transform: uppercase;
-}
-.row > span:first-child {
-  display: grid;
-}
-.row small {
-  color: var(--ds-muted);
-  font-size: 12px;
-}
-.row button {
-  justify-self: end;
-  border: 0;
-  background: transparent;
-  color: var(--ds-destructive);
-  cursor: pointer;
-}
+.product-name { display:flex; align-items:center; gap:.75rem; }
+.product-name img { object-fit:cover; border-radius:var(--ds-radius-sm); }
+input[type="checkbox"] { height:1.2rem; width:1.2rem; }
 .empty {
   padding: 50px;
   text-align: center;

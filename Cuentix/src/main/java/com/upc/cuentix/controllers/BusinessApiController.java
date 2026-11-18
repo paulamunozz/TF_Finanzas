@@ -22,8 +22,8 @@ public class BusinessApiController {
   }
 
   @GetMapping("/clients")
-  public List<ClientView> clients() {
-    return service.clients();
+  public List<ClientView> clients(@RequestParam(defaultValue="false") boolean includeInactive) {
+    return service.clients(includeInactive);
   }
 
   @GetMapping("/clients/{id}")
@@ -48,8 +48,8 @@ public class BusinessApiController {
   }
 
   @GetMapping("/catalog")
-  public List<ProductView> catalog(HttpSession s) {
-    return service.catalog(s);
+  public List<ProductView> catalog(HttpSession s, @RequestParam(defaultValue="false") boolean includeInactive) {
+    return includeInactive ? service.allProducts(s) : service.catalog(s);
   }
 
   @PostMapping("/catalog")
@@ -68,6 +68,12 @@ public class BusinessApiController {
     service.deleteProduct(id);
   }
 
+  @PutMapping("/clients/{id}/activate")
+  public ClientView activateAccount(@PathVariable Integer id) { return service.activateAccount(id); }
+
+  @PutMapping("/catalog/{id}/activate")
+  public ProductView activateProduct(@PathVariable Integer id) { return service.activateProduct(id); }
+
   @GetMapping("/purchases")
   public List<PurchaseView> purchases() {
     return service.purchases();
@@ -76,6 +82,14 @@ public class BusinessApiController {
   @GetMapping("/purchases/{id}")
   public PurchaseView purchase(@PathVariable Integer id) {
     return service.purchase(id);
+  }
+
+  @PostMapping("/business/purchases/quote")
+  public PurchaseQuote quotePurchase(@RequestBody PurchaseRequest d) { return service.quotePurchase(d); }
+
+  @GetMapping("/payments/{id}/quote")
+  public PaymentView quotePayment(@PathVariable Integer id, @RequestParam java.time.LocalDate paidAt) {
+    return service.paymentQuote(id, paidAt);
   }
 
   @PostMapping("/business/purchases")

@@ -29,6 +29,7 @@ export interface PurchaseSchedule {
   id: string;
   accountId: string;
   clientId: string;
+  clientName: string;
   businessId: string;
   currency: string;
   purchaseDate: string;

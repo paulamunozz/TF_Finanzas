@@ -1,3 +1,5 @@
+import { forkJoin } from 'rxjs';
+import { MockClientRepository } from './mock-client.repository';
 import { inject, Injectable } from '@angular/core';
 import { defer, Observable, of } from 'rxjs';
 import { Installment, PurchaseSchedule } from '../models/payment.model';
@@ -9,6 +11,7 @@ import { dateKey, isoToday, quoteMora } from '../../financial-engine/domain/sche
 const purchases: PurchaseSchedule[] = [
   {
     id: 'COMP-001',
+    clientName: 'Maria Torres',
     accountId: 'CC-001',
     clientId: 'c1',
     businessId: 'b1',
@@ -22,6 +25,7 @@ const purchases: PurchaseSchedule[] = [
   },
   {
     id: 'COMP-002',
+    clientName: 'Maria Torres',
     accountId: 'CC-001',
     clientId: 'c1',
     businessId: 'b1',
@@ -35,6 +39,7 @@ const purchases: PurchaseSchedule[] = [
   },
   {
     id: 'COMP-003',
+    clientName: 'Carlos Ruiz',
     accountId: 'CC-002',
     clientId: 'c2',
     businessId: 'b1',
@@ -48,6 +53,7 @@ const purchases: PurchaseSchedule[] = [
   },
   {
     id: 'COMP-OTHER',
+    clientName: 'Maria Torres',
     accountId: 'CC-OTHER',
     clientId: 'c1',
     businessId: 'b2',
@@ -101,10 +107,15 @@ function seed(): Installment[] {
 }
 @Injectable()
 export class MockPaymentRepository implements PaymentRepository {
+  private readonly clientRepository = new MockClientRepository();
   private readonly context = inject(BusinessContext);
   private installments = seed();
   private response<T>(operation: () => T): Observable<T> {
     return defer(() => of(structuredClone(operation())));
+  }
+  getStatement(id: string) {
+    const clients = this.clientRepository;
+    return forkJoin({client: clients.getById(id), purchases: this.getPurchases(), items: this.getByClientId(id)});
   }
   getPurchases() {
     return this.response(() => purchases.filter((item) => item.businessId === this.context.id()));

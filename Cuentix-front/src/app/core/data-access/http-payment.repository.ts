@@ -3,13 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Installment, PurchaseSchedule } from '../models/payment.model';
-import { PaymentRepository } from '../repositories/payment.repository';
+import { PaymentRepository, Statement } from '../repositories/payment.repository';
 
 @Injectable()
 export class HttpPaymentRepository implements PaymentRepository {
   private readonly http = inject(HttpClient);
   private readonly api = inject(API_BASE_URL);
   private readonly baseUrl = `${this.api}/payments`;
+  getStatement(id: string) {
+    return this.http.get<Statement>(`${this.api}/clients/${encodeURIComponent(id)}/statement`);
+  }
   getPurchases(): Observable<PurchaseSchedule[]> {
     return this.http.get<PurchaseSchedule[]>(`${this.api}/purchases`);
   }
@@ -29,9 +32,9 @@ export class HttpPaymentRepository implements PaymentRepository {
   getById(id: string): Observable<Installment> {
     return this.http.get<Installment>(`${this.baseUrl}/${encodeURIComponent(id)}`);
   }
-  cancel(id: string, paidAt: string): Observable<Installment> {
+  cancel(id: string, paidAt: string, amount?: number): Observable<Installment> {
     return this.http.post<Installment>(`${this.baseUrl}/${encodeURIComponent(id)}/cancel`, {
-      paidAt,
+      paidAt, amount,
     });
   }
 }

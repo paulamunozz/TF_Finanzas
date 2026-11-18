@@ -63,6 +63,8 @@
               (ngModelChange)="quantity(item.id, $event)" /></label
           ><strong>{{ item.price * item.quantity | currency: currency() }}</strong>
         </div>
+      } @empty {
+        @if(catalog.loading()){<p role="status">Cargando catálogo…</p>}@else if(!catalog.error()){<p>Agrega un producto al <a routerLink="/products">catálogo</a> para registrar una compra.</p>}
       }
     </section>
     <section class="card">
@@ -86,6 +88,7 @@
           /></label>
         }
         <label>Fecha de compra<input type="date" [(ngModel)]="purchaseDate" [max]="today" /></label>
+        <label>Hora de compra<input type="time" [(ngModel)]="purchaseTime" /></label>
       </div>
       <p class="note">
         El subtotal no incluye intereses. Al confirmar, el servidor valida el crédito disponible y
@@ -101,13 +104,14 @@
     <div>
       <span>Modalidad</span><b>{{ mode === 'single' ? 'Pago único' : months + ' cuotas' }}</b>
     </div>
-    <div>
-      <span>Crédito después</span><b>{{ available() - total() | currency: currency() }}</b>
-    </div>
-    <hr />
-    <div class="total">
-      <span>Subtotal de productos</span><strong>{{ total() | currency: currency() }}</strong>
-    </div>
+    @if (currentQuote(); as q) {
+      <div><span>Fecha de corte</span><b>{{ q.cutoff | date:'dd/MM/yyyy' }}</b></div>
+      <div><span>Primer vencimiento</span><b>{{ q.firstDue | date:'dd/MM/yyyy' }}</b></div>
+      <div><span>Tasa efectiva anual</span><b>{{ q.annualRate | percent:'1.2-7' }}</b></div>
+      <div><span>Interés de gracia</span><b>{{ q.graceInterest | currency:currency() }}</b></div>
+      <div><span>Disponible después</span><b>{{ q.availableAfter | currency:currency() }}</b></div>
+      <div class="total"><span>Total financiado</span><strong>{{ q.total | currency:currency() }}</strong></div>
+    }
     @if (total() > available()) {
       <p class="error">
         La compra supera el crédito disponible por
@@ -128,7 +132,7 @@
       "
       (click)="confirm()"
     >
-      Confirmar compra</button
+      {{ saving() ? 'Procesando…' : currentQuote() ? 'Confirmar compra' : 'Cotizar crédito' }}</button
     ><small>La compra y las cuotas se guardan en el servidor.</small>
   </aside>
 </div>

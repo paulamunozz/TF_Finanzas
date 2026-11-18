@@ -68,10 +68,12 @@ public class BusinessApplicationService {
       double creditLine,
       int cutOffDay,
       int paymentDay,
-      Double usedCredit) {}
+      String cutoffTime,
+      Double usedCredit, Boolean active) {}
 
   public record ProductView(
-      Integer id, String name, String unit, double cashPrice, double creditPrice) {}
+      Integer id, String name, String unit, double cashPrice, double creditPrice,
+      String description, String brand, String supplier, String imageUrl, Boolean installmentsAllowed, Boolean active) {}
 
   public record PurchasedProduct(String name, Integer quantity, String unit) {}
 
@@ -79,6 +81,7 @@ public class BusinessApplicationService {
       String id,
       String accountId,
       String clientId,
+      String clientName,
       String businessId,
       String currency,
       String purchaseDate,
@@ -107,7 +110,7 @@ public class BusinessApplicationService {
       String paidAt,
       List<PurchasedProduct> products) {}
 
-  public record PaymentRequest(String paidAt, String businessId) {}
+  public record PaymentRequest(String paidAt, String businessId, BigDecimal amount) {}
 
   public record ItemRequest(Integer productId, Integer quantity) {}
 
@@ -116,7 +119,8 @@ public class BusinessApplicationService {
       Integer months,
       String mode,
       String purchaseDate,
-      List<ItemRequest> items) {}
+      String purchaseTime,
+      List<ItemRequest> items, PurchaseQuote expected) {}
 
   private ResponseStatusException missing() {
     return new ResponseStatusException(HttpStatus.NOT_FOUND, "Recurso no encontrado");
@@ -142,7 +146,7 @@ public class BusinessApplicationService {
     return new Context(n.getId().toString(), n.getRazonSocial());
   }
 
-  private String currency(CuentaCredito c) {
+  String currency(CuentaCredito c) {
     String v = c.getMoneda().getSimbolo();
     return "S/".equals(v) || "S/.".equals(v)
         ? "PEN"
@@ -175,18 +179,20 @@ public class BusinessApplicationService {
                     ? FinancialMath.annual(m)
                     : m.getPorcentaje() * 360 / m.getPeriodicidad())
                 * 100,
-        "TN",
+        m != null && Boolean.TRUE.equals(m.getNominalEfectiva()) ? "TE" : "TN",
         c.getMaxMeses(),
         c.getLimite(),
         c.getDiaCorte(),
-        c.getDiaPago(),
-        c.getDeuda());
+        c.getDiaPago(), c.getHoraCorte() == null ? null : c.getHoraCorte().toString(),
+        c.getDeuda(), c.getEstado());
   }
 
-  public List<ClientView> clients() {
+  public List<ClientView> clients() { return clients(false); }
+
+  public List<ClientView> clients(boolean includeInactive) {
     return accounts.findAll().stream()
         .filter(
-            c -> Boolean.TRUE.equals(c.getEstado()) && access.ownsBusiness(c.getNegocio().getId()))
+            c -> (includeInactive || Boolean.TRUE.equals(c.getEstado())) && access.ownsBusiness(c.getNegocio().getId()))
         .map(this::client)
         .toList();
   }
@@ -211,6 +217,7 @@ public class BusinessApplicationService {
     c.setLimite(d.creditLine());
     c.setDiaCorte(d.cutOffDay());
     c.setDiaPago(d.paymentDay());
+    if (d.cutoffTime() != null) c.setHoraCorte(d.cutoffTime().isBlank() ? null : LocalTime.parse(d.cutoffTime()));
   }
 
   private void writeRate(
@@ -271,7 +278,7 @@ public class BusinessApplicationService {
 
   public void deleteClient(Integer id) {
     access.account(id);
-    CuentaCredito c = accounts.findById(id).orElseThrow(this::missing);
+    CuentaCredito c = em.find(CuentaCredito.class, id, LockModeType.PESSIMISTIC_WRITE);
     if (c.getDeuda() > 0)
       throw new IllegalArgumentException("No puede desactivar una cuenta con deuda");
     c.setEstado(false);
@@ -284,12 +291,31 @@ public class BusinessApplicationService {
         p.getNombre(),
         p.getUnidadMedida().getNombre(),
         p.getPrecioContado(),
-        p.getPrecioLista());
+        p.getPrecioLista(), p.getDescripcion(), p.getMarca(), p.getProovedor(), p.getImagenURL(), p.getPagoCuotas(), p.getEstado());
   }
 
   public List<ProductView> catalog(HttpSession s) {
     Integer id = business(s).getId();
     return products.findByNegocio_IdAndEstado(id, true).stream().map(this::product).toList();
+  }
+
+  public List<ProductView> allProducts(HttpSession s) {
+    return products.findByNegocio_Id(business(s).getId()).stream().map(this::product).toList();
+  }
+
+  public ClientView activateAccount(Integer id) {
+    access.account(id);
+    var account = em.find(CuentaCredito.class,id,LockModeType.PESSIMISTIC_WRITE);
+    if (!Boolean.TRUE.equals(account.getCliente().getEstado())) throw new IllegalArgumentException("Cliente inactivo");
+    account.setEstado(true);
+    return client(account);
+  }
+
+  public ProductView activateProduct(Integer id) {
+    access.product(id);
+    var product=products.findById(id).orElseThrow(this::missing);
+    product.setEstado(true);
+    return product(product);
   }
 
   public ProductView createProduct(ProductView d, HttpSession s) {
@@ -325,6 +351,18 @@ public class BusinessApplicationService {
             .stream()
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Unidad no configurada"));
+    if (d.creditPrice() < d.cashPrice()) throw new IllegalArgumentException("El precio a crédito debe cubrir el precio contado");
+    if (d.description() != null) p.setDescripcion(d.description().trim());
+    if (d.brand() != null) p.setMarca(d.brand().trim());
+    if (d.supplier() != null) p.setProovedor(d.supplier().trim());
+    if (d.imageUrl() != null) {
+      String url = d.imageUrl().trim();
+      if (!url.isEmpty() && !(url.startsWith("https://") || url.startsWith("http://")))
+        throw new IllegalArgumentException("Ingrese una URL de imagen HTTP o HTTPS");
+      p.setImagenURL(url);
+    }
+    if (d.installmentsAllowed() != null) p.setPagoCuotas(d.installmentsAllowed());
+    else if (p.getId() == null) p.setPagoCuotas(true);
     p.setNombre(d.name().trim());
     p.setUnidadMedida(unit);
     p.setPrecioContado(d.cashPrice());
@@ -364,12 +402,13 @@ public class BusinessApplicationService {
         c.getId().toString(),
         a.getId().toString(),
         a.getId().toString(),
+        a.getCliente().getNombre() + " " + a.getCliente().getApellido(),
         a.getNegocio().getId().toString(),
         currency(a),
         c.getFecha() == null ? null : c.getFecha().toString(),
         zero(c.getTotalInicial()),
         FinancialMath.money(zero(c.getTotalGracia()) - zero(c.getTotalInicial())).doubleValue(),
-        c.getNumMeses() != null && c.getNumMeses() > 1 ? "installments" : "single",
+        c.getModalidad() != null ? c.getModalidad() : c.getNumMeses() != null && c.getNumMeses() > 1 ? "installments" : "single",
         c.getNumMeses() == null ? 0 : c.getNumMeses(),
         productList(c));
   }
@@ -394,7 +433,7 @@ public class BusinessApplicationService {
     return payment(q, LocalDate.now(ZoneId.of("America/Lima")));
   }
 
-  private PaymentView payment(Cuota q, LocalDate reference) {
+  PaymentView payment(Cuota q, LocalDate reference) {
     Compra c = q.getCompra();
     CuentaCredito a = c.getCuentaCredito();
     String due = iso(q.getFechaVencimiento());
@@ -414,7 +453,7 @@ public class BusinessApplicationService {
     double mora =
         Boolean.TRUE.equals(q.getCancelado())
             ? zero(q.getMoras())
-            : FinancialMath.lateAmount(zero(q.getTotal()), annual, days);
+            : FinancialMath.lateCharge(zero(q.getTotal()), c.getTasaMora(), days, c.getMoraEfectiva());
     return new PaymentView(
         q.getId().toString(),
         c.getId().toString(),
@@ -446,6 +485,14 @@ public class BusinessApplicationService {
         .toList();
   }
 
+  public PaymentView paymentQuote(Integer id, LocalDate paidAt) {
+    Cuota q = installments.findById(id).orElseThrow(this::missing);
+    access.purchase(q.getCompra().getId());
+    if (paidAt.isBefore(q.getCompra().getFecha()) || paidAt.isAfter(LocalDate.now(ZoneId.of("America/Lima"))))
+      throw new IllegalArgumentException("Fecha de pago inv?lida");
+    return payment(q, paidAt);
+  }
+
   public PaymentView payment(Integer id) {
     Cuota q = installments.findById(id).orElseThrow(this::missing);
     access.purchase(q.getCompra().getId());
@@ -468,7 +515,12 @@ public class BusinessApplicationService {
     if (paid.isAfter(LocalDate.now(ZoneId.of("America/Lima")))
         || paid.isBefore(q.getCompra().getFecha()))
       throw new IllegalArgumentException("Fecha de pago invalida");
+    if (installments.existsByCompra_IdAndNumLessThanAndCanceladoFalse(q.getCompra().getId(), q.getNum()))
+      throw new IllegalArgumentException("Pague primero las cuotas anteriores");
     PaymentView quote = payment(q, paid);
+    BigDecimal totalDue = FinancialMath.money(q.getTotal() + quote.lateAmount());
+    if (d.amount() != null && totalDue.compareTo(d.amount()) != 0)
+      throw new IllegalArgumentException("El importe debe coincidir con el total exigible");
     q.setFechaPago(paid);
     q.setMoras(quote.lateAmount());
     q.setCancelado(true);
@@ -497,7 +549,7 @@ public class BusinessApplicationService {
             draft.getNumMeses(),
             draft.getNumMeses() != null && draft.getNumMeses() > 1 ? "installments" : "single",
             LocalDate.now(ZoneId.of("America/Lima")).toString(),
-            rows),
+            null, rows, null),
         draft);
     var result = new com.upc.cuentix.dto.CompraDTO();
     result.setId(draft.getId());
@@ -521,7 +573,15 @@ public class BusinessApplicationService {
     return createPurchase(d, null);
   }
 
-  private PurchaseView createPurchase(PurchaseRequest d, Compra draft) {
+  public record PurchaseQuote(LocalDate cutoff, LocalDate paymentDay, LocalDate firstDue,
+      double principal, double graceInterest, double total, double availableBefore, double availableAfter,
+      double annualRate, List<FinancialMath.Term> schedule) {}
+  private record Prepared(CuentaCredito account, List<Item> items, int months, LocalDateTime purchasedAt,
+      double tea, double late, boolean effectiveLate, PurchaseQuote quote) {}
+
+  public PurchaseQuote quotePurchase(PurchaseRequest d) { return prepare(d, null).quote(); }
+
+  private Prepared prepare(PurchaseRequest d, Compra draft) {
     if (d.accountId() == null || d.items() == null || d.items().isEmpty())
       throw new IllegalArgumentException("Indique cuenta y productos");
     access.account(d.accountId());
@@ -541,6 +601,11 @@ public class BusinessApplicationService {
     LocalDate date = LocalDate.parse(d.purchaseDate());
     if (date.isAfter(LocalDate.now(ZoneId.of("America/Lima"))))
       throw new IllegalArgumentException("Fecha futura");
+    LocalDateTime now = LocalDateTime.now(ZoneId.of("America/Lima"));
+    LocalTime time = d.purchaseTime() == null || d.purchaseTime().isBlank()
+        ? (date.equals(now.toLocalDate()) ? now.toLocalTime() : LocalTime.MIDNIGHT) : LocalTime.parse(d.purchaseTime());
+    LocalDateTime purchasedAt = date.atTime(time);
+    if (purchasedAt.isAfter(now)) throw new IllegalArgumentException("La compra está en el futuro");
     List<Item> selected = new ArrayList<>();
     BigDecimal principal = BigDecimal.ZERO;
     Set<Integer> seen = new HashSet<>();
@@ -555,6 +620,8 @@ public class BusinessApplicationService {
       if (!Boolean.TRUE.equals(product.getEstado())
           || !product.getNegocio().getId().equals(a.getNegocio().getId()))
         throw new IllegalArgumentException("Producto no autorizado");
+      if ("installments".equals(d.mode()) && !Boolean.TRUE.equals(product.getPagoCuotas()))
+        throw new IllegalArgumentException("El producto solo admite pago único");
       principal =
           principal.add(
               BigDecimal.valueOf(product.getPrecioLista())
@@ -573,10 +640,11 @@ public class BusinessApplicationService {
         Boolean.TRUE.equals(lateRate.getNominalEfectiva())
             ? FinancialMath.annual(lateRate)
             : lateRate.getPorcentaje() * 360 / lateRate.getPeriodicidad();
-    LocalDate start = FinancialMath.paymentDate(date, a.getDiaCorte(), a.getDiaPago());
+    LocalDate cutoff = FinancialMath.cutoffDate(purchasedAt, a.getDiaCorte(), a.getHoraCorte());
+    LocalDate start = FinancialMath.paymentDate(cutoff, a.getDiaCorte(), a.getDiaPago());
     double grace =
         FinancialMath.compound(
-            principal.doubleValue(), tea, java.time.temporal.ChronoUnit.DAYS.between(date, start));
+            principal.doubleValue(), tea, FinancialMath.commercialDays(date, start));
     List<FinancialMath.Term> terms =
         "single".equals(d.mode())
             ? List.of(
@@ -590,25 +658,49 @@ public class BusinessApplicationService {
             .map(FinancialMath.Term::amount)
             .reduce(BigDecimal.ZERO, BigDecimal::add)
             .doubleValue();
-    if (total > a.getLimite() - a.getDeuda())
+    if (FinancialMath.money(total).compareTo(FinancialMath.money(a.getLimite()).subtract(FinancialMath.money(a.getDeuda()))) > 0)
       throw new IllegalArgumentException(
           "La compra supera la linea disponible, incluidos intereses");
+    double available = FinancialMath.money(a.getLimite() - a.getDeuda()).doubleValue();
+    var quote = new PurchaseQuote(cutoff, start, "single".equals(d.mode()) ? start : FinancialMath.monthlyDue(start, 1, a.getDiaPago()),
+        principal.doubleValue(), FinancialMath.money(grace - principal.doubleValue()).doubleValue(),
+        total, available, FinancialMath.money(available - total).doubleValue(), tea, terms);
+    return new Prepared(a, selected, months, purchasedAt, tea, late, Boolean.TRUE.equals(lateRate.getNominalEfectiva()), quote);
+  }
+
+  private PurchaseView createPurchase(PurchaseRequest d, Compra draft) {
+    Prepared prepared = prepare(d, draft);
+    var quote = prepared.quote();
+    if (d.expected() != null && (d.expected().total() != quote.total()
+        || d.expected().availableAfter() != quote.availableAfter() || d.expected().annualRate() != quote.annualRate()
+        || !quote.firstDue().equals(d.expected().firstDue()) || !quote.cutoff().equals(d.expected().cutoff())))
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Las condiciones cambiaron. Vuelva a cotizar.");
+    var a = prepared.account();
+    var terms = quote.schedule();
+    var total = quote.total();
     Compra c = draft == null ? new Compra() : draft;
     c.setCuentaCredito(a);
-    c.setFecha(date);
+    c.setFecha(prepared.purchasedAt().toLocalDate());
+    c.setHoraCompra(prepared.purchasedAt().toLocalTime());
+    c.setFechaCorte(quote.cutoff());
+    c.setDiaPagoPactado(a.getDiaPago());
+    c.setDiaCortePactado(a.getDiaCorte());
+    c.setHoraCortePactada(a.getHoraCorte());
+    c.setModalidad(d.mode());
+    c.setMoraEfectiva(prepared.effectiveLate());
     c.setContadoCredito(true);
-    c.setNumMeses(months);
-    c.setTasa(tea);
-    c.setTasaMora(late);
-    c.setTotalInicial(principal.doubleValue());
-    c.setTotalGracia("single".equals(d.mode()) ? principal.doubleValue() : grace);
-    c.setIntereses(FinancialMath.money(total - c.getTotalGracia()).doubleValue());
+    c.setNumMeses(prepared.months());
+    c.setTasa(prepared.tea());
+    c.setTasaMora(prepared.late());
+    c.setTotalInicial(quote.principal());
+    c.setTotalGracia(quote.principal() + quote.graceInterest());
+    c.setIntereses(FinancialMath.money(total - quote.principal()).doubleValue());
     c.setTotalFinal(total);
     c.setMoras(0.0);
     c.setFinalCuotas(false);
     c = purchases.save(c);
     if (draft != null) items.deleteAll(items.findByCompra_Id(c.getId()));
-    for (Item i : selected) {
+    for (Item i : prepared.items()) {
       i.setCompra(c);
       items.save(i);
     }
@@ -618,7 +710,7 @@ public class BusinessApplicationService {
       q.setCompra(c);
       q.setNum(n + 1);
       q.setFechaVencimiento(
-          java.sql.Date.valueOf("single".equals(d.mode()) ? start : start.plusMonths(n + 1)));
+          java.sql.Date.valueOf("single".equals(d.mode()) ? quote.paymentDay() : FinancialMath.monthlyDue(quote.paymentDay(), n + 1, a.getDiaPago())));
       q.setIntereses(term.interest().doubleValue());
       q.setMoras(0.0);
       q.setTotal(term.amount().doubleValue());

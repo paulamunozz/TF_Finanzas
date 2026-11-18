@@ -59,6 +59,18 @@ export class PaymentReport {
   protected readonly to = signal('');
   protected readonly order = signal('date');
   protected readonly summary = computed(() => scheduleSummary(this.state()?.data?.items ?? []));
+  protected readonly balances = computed(() => {
+    const result = new Map<string,{opening:number; closing:number}>();
+    const balances = new Map<string, number>();
+    const terms = [...(this.state()?.data?.items ?? [])].sort((a,b) => b.number - a.number);
+    for (const term of terms) {
+      const closing = balances.get(term.purchaseId) ?? 0;
+      const opening = closing + Math.round(term.amortization * 100);
+      result.set(term.id,{opening:opening/100,closing:closing/100});
+      balances.set(term.purchaseId,opening);
+    }
+    return result;
+  });
   protected readonly rows = computed(() => {
     const items = this.state()?.data?.items ?? [];
     return items
@@ -95,14 +107,14 @@ export class PaymentReport {
         },
       })
       .afterClosed()
-      .subscribe((date?: string) => {
-        if (date)
-          this.query.repository.cancel(item.id, date).subscribe({
+      .subscribe((result?: { date: string; amount: number }) => {
+        if (result)
+          this.query.repository.cancel(item.id, result.date, result.amount).subscribe({
             next: () => {
               this.refresh.update((v) => v + 1);
               this.snack.open('Pago completo registrado', 'Cerrar', { duration: 3000 });
             },
-            error: (error) => this.snack.open(error.message, 'Cerrar', { duration: 4000 }),
+            error: (error) => this.snack.open(error.error?.message ?? 'No se pudo registrar el pago.', 'Cerrar', { duration: 4000 }),
           });
       });
   }

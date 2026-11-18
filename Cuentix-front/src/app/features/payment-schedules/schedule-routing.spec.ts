@@ -18,7 +18,7 @@ describe('Schedule navigation', () => {
         provideRouter(routes),
         {
           provide: BusinessContext,
-          useValue: { id: signal('b1'), name: signal('Demo'), error: signal('') },
+          useValue: { load: () => {}, id: signal('b1'), name: signal('Demo'), error: signal('') },
         },
         { provide: AuthService, useValue: { recuperar: () => of({ id: 1, rolId: 3 }) } },
         { provide: CLIENT_REPOSITORY, useClass: MockClientRepository },

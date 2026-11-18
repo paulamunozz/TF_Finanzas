@@ -9,6 +9,9 @@ import lombok.Setter;
 @Entity
 @Table(name ="cuenta_credito")
 public class CuentaCredito {
+    @Column(name = "hora_corte")
+    private java.time.LocalTime horaCorte;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_cc", nullable = false)

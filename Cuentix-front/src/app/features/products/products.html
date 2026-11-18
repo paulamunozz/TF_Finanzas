@@ -7,20 +7,20 @@
   }
   @if (pendingDelete(); as id) {
     <div class="delete-confirm" role="alert">
-      <span>¿Eliminar este producto del catálogo?</span
+      <span>¿Desactivar este producto para nuevas ventas?</span
       ><button mat-button (click)="pendingDelete.set(null)">Cancelar</button
-      ><button mat-button (click)="remove(id); pendingDelete.set(null)">Eliminar</button>
+      ><button mat-button (click)="remove(id); pendingDelete.set(null)">Desactivar</button>
     </div>
   }
   <app-page-header
-    title="Mis productos"
+    title="Productos y servicios"
     description="Administra el catálogo comercial de tu negocio."
-    ><button mat-flat-button type="button" (click)="showForm.set(!showForm())">
+    ><button mat-flat-button type="button" (click)="newProduct()">
       Nuevo producto
     </button></app-page-header
   >
   @if (showForm()) {
-    <form (ngSubmit)="add()">
+    <form #productForm="ngForm" (ngSubmit)="productForm.valid && add()">
       <label>Nombre<input name="name" [(ngModel)]="draft.name" required /></label
       ><label>Unidad<input name="unit" [(ngModel)]="draft.unit" required /></label
       ><label
@@ -37,10 +37,18 @@
           type="number"
           min="0.01"
           required /></label
-      ><button mat-flat-button>Guardar producto</button>
+      ><label>Descripción<input name="description" [(ngModel)]="draft.description" /></label>
+      <label>Marca<input name="brand" [(ngModel)]="draft.brand" /></label>
+      <label>Proveedor<input name="supplier" [(ngModel)]="draft.supplier" /></label>
+      <label>Enlace de imagen<input name="image" type="url" [(ngModel)]="draft.imageUrl" /></label>
+      <label><input type="checkbox" name="installments" [(ngModel)]="draft.installmentsAllowed" /> Admite cuotas</label>
+      <button mat-button type="button" (click)="showForm.set(false)">Cancelar</button>
+      <button mat-flat-button [disabled]="saving() || productForm.invalid || draft.creditPrice < draft.cashPrice">Guardar producto</button>
+      @if (draft.creditPrice < draft.cashPrice) { <p role="alert">El precio a crédito debe cubrir el precio contado.</p> }
     </form>
   }
   <div class="toolbar">
+    <label>Mostrar inactivos<input type="checkbox" [(ngModel)]="showInactive" (change)="includeInactive.set(showInactive); loadInactive()"></label>
     <label
       ><span>Buscar</span
       ><input
@@ -49,28 +57,26 @@
         placeholder="Nombre del producto" /></label
     ><span>{{ filtered().length }} productos</span>
   </div>
-  <div class="table">
-    <div class="row head">
-      <b>Producto</b><b>Unidad</b><b>Precio contado</b><b>Precio crédito</b><b></b>
+  @if (!loading() && !error()) {
+    <div class="table" tabindex="0" aria-label="Catálogo de productos y servicios">
+      <table class="data-table"><thead><tr>
+        <th>Producto o servicio</th><th>Modalidad</th><th class="numeric">Contado</th>
+        <th class="numeric">A crédito</th><th>Estado</th><th>Acciones</th>
+      </tr></thead><tbody>
+      @for (product of filtered(); track product.id) {
+        <tr><td><div class="product-name">
+          @if(product.imageUrl){<img [src]="product.imageUrl" alt="" width="40" height="40" loading="lazy" referrerpolicy="no-referrer">}
+          <span><b>{{product.name}}</b><small>{{product.brand || product.description || product.unit}}</small></span></div></td>
+          <td>{{product.installmentsAllowed ? 'Pago único o cuotas' : 'Pago único'}}</td>
+          <td class="numeric">{{product.cashPrice | number:'1.2-2'}}</td><td class="numeric">{{product.creditPrice | number:'1.2-2'}}</td>
+          <td>{{product.active === false ? 'Inactivo' : 'Activo'}}</td>
+          <td><button mat-button [matMenuTriggerFor]="menu" [attr.aria-label]="'Acciones de '+product.name">Acciones</button>
+          <mat-menu #menu="matMenu">@if(product.active === false){
+            <button mat-menu-item (click)="activate(product.id)">Reactivar</button>
+          } @else {<button mat-menu-item (click)="edit(product)">Editar</button>
+            <button mat-menu-item (click)="requestRemove(product.id)">Desactivar</button>}</mat-menu></td></tr>
+      } @empty {<tr><td colspan="6" class="empty">{{query() ? 'No hay coincidencias para esta búsqueda.' : 'Todavía no hay productos en el catálogo.'}}</td></tr>}
+      </tbody></table>
     </div>
-    @for (product of filtered(); track product.id) {
-      <div class="row">
-        <span
-          ><b>{{ product.name }}</b
-          ><small>ID {{ product.id }}</small></span
-        ><span>{{ product.unit }}</span
-        ><span>{{ product.cashPrice | currency: 'PEN' : 'S/ ' }}</span
-        ><span>{{ product.creditPrice | currency: 'PEN' : 'S/ ' }}</span>
-        <details class="product-actions">
-          <summary [attr.aria-label]="'Acciones de ' + product.name">⋯</summary>
-          <div>
-            <button type="button" (click)="edit(product)">Editar producto</button
-            ><button type="button" (click)="requestRemove(product.id)">Eliminar producto</button>
-          </div>
-        </details>
-      </div>
-    } @empty {
-      <p class="empty">No se encontraron productos.</p>
-    }
-  </div>
+  }
 </section>

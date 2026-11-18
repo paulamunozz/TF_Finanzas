@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Setter
@@ -19,7 +20,13 @@ public class CuotaDTO {
     private Date fechaVencimiento;
 
     @NotNull
+    private LocalDate fechaPago;
+
+    @NotNull
     private Integer num;
+
+    @NotNull
+    private Double amortizacion;
 
     @NotNull
     private Double intereses;

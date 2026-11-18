@@ -4,14 +4,12 @@
     <p class="alert-error" role="alert">{{ error }}</p>
   }
   <form class="login-form" (ngSubmit)="iniciarSesion()" novalidate>
-    <label for="codigo">DNI / RUC</label>
+    <label for="codigo">Usuario, DNI o RUC</label>
     <input
       id="codigo"
       name="codigo"
       type="text"
       [(ngModel)]="codigo"
-      maxlength="11"
-      inputmode="numeric"
       autocomplete="username"
       required
     />

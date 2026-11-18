@@ -14,6 +14,8 @@ export interface Client {
   maxMonths: number;
   creditLine: number;
   usedCredit?: number;
+  active?: boolean;
+  cutoffTime?: string;
   cutOffDay: number;
   paymentDay: number;
 }

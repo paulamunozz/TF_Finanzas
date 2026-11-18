@@ -83,4 +83,23 @@ class FinancialMathTest {
   void moneyRoundsHalfUp() {
     assertEquals("10.01", FinancialMath.money(10.005).toPlainString());
   }
+
+  @Test
+  void septemberCreditAndCutoffBoundary() {
+    var date = LocalDate.of(2026, 9, 15);
+    var close = FinancialMath.cutoffDate(date.atTime(12,0),20,java.time.LocalTime.of(18,0));
+    var graceEnd = FinancialMath.paymentDate(close,20,26);
+    assertEquals(11, FinancialMath.commercialDays(date,graceEnd));
+    double capital = FinancialMath.compound(1000,.24,11);
+    assertEquals(1006.59,capital);
+    var schedule = FinancialMath.french(capital,.24,3);
+    assertEquals(java.util.List.of("347.74","347.74","347.75"),
+        schedule.stream().map(t -> t.amount().toPlainString()).toList());
+    assertEquals(LocalDate.of(2026,12,26),FinancialMath.monthlyDue(graceEnd,3,26));
+    var atClose = FinancialMath.cutoffDate(close.atTime(18,0),20,java.time.LocalTime.of(18,0));
+    assertEquals(LocalDate.of(2026,11,5),FinancialMath.paymentDate(atClose,20,5));
+    assertEquals(close,FinancialMath.cutoffDate(close.atTime(17,59,59),20,java.time.LocalTime.of(18,0)));
+    assertEquals(5.06,FinancialMath.lateCharge(505.78,.36,10,false));
+    assertEquals(10.0,FinancialMath.lateCharge(100,.21,180,true));
+  }
 }

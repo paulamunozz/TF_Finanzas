@@ -1,5 +1,7 @@
+import { HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { CurrencyPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,7 +9,7 @@ import { Installment } from '../../core/models/payment.model';
 import {
   dateKey,
   isoToday,
-  quoteMora,
+
   sumMoney,
 } from '../../financial-engine/domain/schedule-domain';
 @Component({
@@ -17,7 +19,7 @@ import {
   templateUrl: './payment-confirm-dialog.html',
   styleUrl: './payment-confirm-dialog.scss',
 })
-export class PaymentConfirmDialog {
+export class PaymentConfirmDialog implements OnDestroy {
   protected readonly data = inject<{ item: Installment; clientName: string; currency: string }>(
     MAT_DIALOG_DATA,
   );
@@ -34,10 +36,23 @@ export class PaymentConfirmDialog {
       return false;
     }
   }
-  protected quote() {
-    return quoteMora(this.data.item, this.valid() ? this.date : this.today);
+  private readonly http = inject(HttpClient);
+  private pending?: Subscription;
+  protected readonly quote = signal<Installment | null>(null);
+  protected readonly error = signal('');
+  constructor() { this.load(this.today); }
+  ngOnDestroy() { this.pending?.unsubscribe(); }
+  protected load(date: string) {
+    this.date = date;
+    this.pending?.unsubscribe();
+    this.quote.set(null);
+    this.error.set('');
+    if (!this.valid()) return;
+    this.pending = this.http.get<Installment>('/api/payments/' + encodeURIComponent(this.data.item.id) + '/quote',
+      {params: {paidAt: date}}).subscribe({
+      next: q => this.quote.set(q),
+      error: () => this.error.set('No se pudo consultar el importe para esta fecha.'),
+    });
   }
-  protected total() {
-    return sumMoney([this.data.item.installmentAmount, this.quote().lateAmount]);
-  }
+  protected total() { return sumMoney([this.data.item.installmentAmount, this.quote()?.lateAmount ?? 0]); }
 }

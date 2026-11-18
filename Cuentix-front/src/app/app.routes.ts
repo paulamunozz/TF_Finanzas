@@ -1,5 +1,8 @@
 import { Routes } from '@angular/router';
+import { sessionGuard } from './core/services/session.guard';
 export const routes: Routes = [
+  {path: 'admin/negocios', canActivate: [sessionGuard], data: {roles: [1]},
+    loadComponent: () => import('./features/admin/business-admin').then(m => m.BusinessAdmin)},
   { path: 'login', redirectTo: 'auth/login', pathMatch: 'full' },
   { path: 'registro', redirectTo: 'auth/register', pathMatch: 'full' },
   {

@@ -8,8 +8,9 @@ export const DASHBOARD_ROUTES: Routes = [
     path: '',
     component: MainLayout,
     canActivate: PREVIEW_WITHOUT_LOGIN ? [] : [sessionGuard],
-    data: { roles: [1, 3] },
+    data: { roles: [3] },
     children: [
+      {path: 'cortes', loadComponent: () => import('../features/statements/cutoff-list').then(m => m.CutoffList)},
       {
         path: 'purchases',
         loadChildren: () =>

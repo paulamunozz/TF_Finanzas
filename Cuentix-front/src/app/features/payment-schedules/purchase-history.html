@@ -25,7 +25,7 @@
             </td>
             <td>
               <a [routerLink]="['/clients', purchase.clientId, 'payments']">{{
-                purchase.clientId
+                purchase.clientName
               }}</a>
             </td>
             <td>{{ purchase.purchaseDate | date: 'dd/MM/yyyy' }}</td>

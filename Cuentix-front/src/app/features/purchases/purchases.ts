@@ -1,4 +1,4 @@
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, PercentPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +12,7 @@ import { CatalogStore } from '../../core/data-access/catalog.store';
 import { isoToday } from '../../financial-engine/domain/schedule-domain';
 @Component({
   selector: 'app-purchases',
-  imports: [RouterLink, CurrencyPipe, FormsModule, MatButtonModule, MatSnackBarModule, PageHeader],
+  imports: [DatePipe, PercentPipe, RouterLink, CurrencyPipe, FormsModule, MatButtonModule, MatSnackBarModule, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './purchases.html',
   styleUrl: './purchases.scss',
@@ -61,20 +61,31 @@ export class Purchases {
   protected quantity(id: number, value: number) {
     this.quantities.update((q) => ({ ...q, [id]: Math.max(0, Math.floor(Number(value) || 0)) }));
   }
+  protected purchaseTime = '';
+  protected readonly quote = signal<PurchaseQuote | null>(null);
+  private quotedRequest = '';
+  private request() {
+    return {accountId: Number(this.clientId()), months: this.months, mode: this.mode,
+      purchaseDate: this.purchaseDate, purchaseTime: this.purchaseTime || null,
+      items: this.items().filter(i => i.quantity > 0).map(i => ({productId: i.id, quantity: i.quantity}))};
+  }
+  protected currentQuote() {
+    return this.quotedRequest === JSON.stringify(this.request()) ? this.quote() : null;
+  }
   protected confirm() {
     if (this.saving()) return;
+    const request = this.request();
+    const current = this.currentQuote();
     this.saving.set(true);
     this.error.set('');
-    this.http
-      .post<{ id: string }>('/api/business/purchases', {
-        accountId: Number(this.clientId()),
-        months: this.months,
-        mode: this.mode,
-        purchaseDate: this.purchaseDate,
-        items: this.items()
-          .filter((i) => i.quantity > 0)
-          .map((i) => ({ productId: i.id, quantity: i.quantity })),
-      })
+    if (!current) {
+      this.http.post<PurchaseQuote>('/api/business/purchases/quote', request).subscribe({
+        next: quote => { this.quotedRequest = JSON.stringify(request); this.quote.set(quote); this.saving.set(false); },
+        error: e => { this.saving.set(false); this.error.set(e.error?.message ?? 'No se pudo cotizar la compra.'); }
+      });
+      return;
+    }
+    this.http.post<{id: string}>('/api/business/purchases', {...request, expected: current})
       .subscribe({
         next: (p) => {
           this.saving.set(false);
@@ -82,9 +93,22 @@ export class Purchases {
           this.router.navigate(['/purchases', p.id, 'schedule']);
         },
         error: (e) => {
+          this.quote.set(null);
           this.error.set(e.error?.message ?? 'No se pudo registrar la compra.');
           this.saving.set(false);
         },
       });
   }
+}
+
+interface PurchaseQuote {
+  cutoff: string;
+  firstDue: string;
+  paymentDay: string;
+  principal: number;
+  graceInterest: number;
+  total: number;
+  annualRate: number;
+  availableBefore: number;
+  availableAfter: number;
 }
