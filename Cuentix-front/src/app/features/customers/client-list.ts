@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../shared/ui/field-help/field-help';
 import { HttpClient } from '@angular/common/http';
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
@@ -18,6 +19,7 @@ import { PageHeader } from '../../shared/ui/page-header/page-header';
 @Component({
   selector: 'app-client-list',
   imports: [
+    FieldHelp,
     AsyncPipe,
     CurrencyPipe,
     FormsModule,

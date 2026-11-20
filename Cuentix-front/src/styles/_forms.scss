@@ -2,8 +2,12 @@
   min-width: 0;
   padding-bottom: 16px;
 }
-.ui-field > label {
-  display: block;
+.field-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.ui-field:not(.help-field) > .field-label {
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;

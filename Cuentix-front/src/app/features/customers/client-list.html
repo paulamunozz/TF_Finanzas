@@ -2,18 +2,54 @@
   <app-page-header title="Mis clientes" description="Condiciones crediticias e historial de tus clientes."><a
       mat-flat-button class="primary-action" routerLink="/clients/new">＋ Nuevo cliente</a></app-page-header>
   <div class="table-toolbar">
-    <label>Mostrar inactivas<input type="checkbox" [(ngModel)]="showInactive" (change)="page.set(0); retry()"></label>
-    <label class="search-control"><span>Buscar cliente</span><input [(ngModel)]="query" (ngModelChange)="page.set(0)"
-        placeholder="Nombre o DNI" /></label>
-    <label><span>Moneda</span><select [(ngModel)]="currency" (ngModelChange)="page.set(0)">
+    <div class="help-field">
+      <span class="field-label">
+        <label for="clients-include-inactive">Mostrar inactivas</label>
+        <app-field-help
+          field="Mostrar inactivas"
+          message="Marca esta casilla para incluir las cuentas de clientes desactivadas en el listado."
+        />
+      </span>
+      <input id="clients-include-inactive" type="checkbox" [(ngModel)]="showInactive" (change)="page.set(0); retry()">
+    </div>
+    <div class="help-field search-control">
+      <span class="field-label">
+        <label for="clients-search">Buscar cliente</label>
+        <app-field-help
+          field="Buscar cliente"
+          message="Escribe una parte del nombre o del DNI del cliente para filtrar el listado."
+        />
+      </span>
+      <input id="clients-search" [(ngModel)]="query" (ngModelChange)="page.set(0)"
+        placeholder="Nombre o DNI" />
+    </div>
+    <div class="help-field">
+      <span class="field-label">
+        <label for="clients-currency">Moneda</label>
+        <app-field-help
+          field="Moneda"
+          message="Filtra las cuentas por soles (PEN) o dólares (USD). Elige Todas para ver ambas monedas."
+        />
+      </span>
+      <select id="clients-currency" [(ngModel)]="currency" (ngModelChange)="page.set(0)">
         <option value="">Todas</option>
         <option>PEN</option>
         <option>USD</option>
-      </select></label>
-    <label><span>Ordenar por</span><select [(ngModel)]="order" (ngModelChange)="page.set(0)">
+      </select>
+    </div>
+    <div class="help-field">
+      <span class="field-label">
+        <label for="clients-order">Ordenar por</label>
+        <app-field-help
+          field="Ordenar por"
+          message="Elige ordenar por nombre de A a Z o mostrar primero las cuentas con mayor línea de crédito."
+        />
+      </span>
+      <select id="clients-order" [(ngModel)]="order" (ngModelChange)="page.set(0)">
         <option value="name">Nombre A–Z</option>
         <option value="credit">Mayor línea de crédito</option>
-      </select></label>
+      </select>
+    </div>
   </div>
   @if (state$ | async; as clients) {
   @let results = filtered(clients);

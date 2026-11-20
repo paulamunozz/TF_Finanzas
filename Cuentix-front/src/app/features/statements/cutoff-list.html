@@ -1,5 +1,14 @@
 <app-page-header title="Listados al corte" description="Obligaciones emitidas para la fecha de pago de cada cuenta."/>
-<label class="ui-field">Mes del corte<input type="month" #period [value]="month" (change)="load(period.value)"></label>
+<span class="help-field ui-field">
+  <span class="field-label">
+    <label for="statement-month">Mes del corte</label>
+    <app-field-help
+      field="Mes del corte"
+      message="Selecciona el mes y el año del listado al corte que deseas consultar. Por ejemplo, noviembre de 2026."
+    />
+  </span>
+  <input id="statement-month" type="month" #period [value]="month" (change)="load(period.value)">
+</span>
 @if(error()){<p role="alert">{{ error() }} <button mat-button (click)="load(month)">Reintentar</button></p>}
 @else if(reports();as rows){@for(r of rows;track r.id){<section class="statement-sheet">
 <header><div><h2>{{r.customer}}</h2><span>Pago pactado · {{r.paymentDay | date:'dd/MM/yyyy'}}</span></div>

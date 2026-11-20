@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../shared/ui/field-help/field-help';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -10,7 +11,7 @@ import { PageHeader } from '../../shared/ui/page-header/page-header';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CurrencyPipe, DatePipe, RouterLink, MatButtonModule, PageHeader],
+  imports: [FieldHelp, CurrencyPipe, DatePipe, RouterLink, MatButtonModule, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',

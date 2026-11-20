@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../../shared/ui/field-help/field-help';
 import { AUTH_PREVIEW } from '../../../core/config/auth-preview.config';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +10,7 @@ import { PerfilService } from '../../../core/services/perfil.service';
 
 @Component({
   selector: 'app-editar-perfil',
-  imports: [FormsModule],
+  imports: [FieldHelp, FormsModule],
   templateUrl: './editar-perfil.html',
   styleUrl: './editar-perfil.css',
 })

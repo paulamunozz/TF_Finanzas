@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../shared/ui/field-help/field-help';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { PageHeader } from '../../shared/ui/page-header/page-header';
 
 interface Entry {id:number; purchaseId:number; purchaseDate:string; number:number; capital:number; interest:number; late:number; adjustment:boolean}
 interface Report {id:number; customer:string; currency:string; paymentDay:string; entries:Entry[]}
-@Component({selector:'app-cutoff-list',imports:[PageHeader,CurrencyPipe,DatePipe,MatButtonModule,RouterLink],changeDetection:ChangeDetectionStrategy.OnPush,templateUrl:'./cutoff-list.html'})
+@Component({selector:'app-cutoff-list',imports:[FieldHelp, PageHeader,CurrencyPipe,DatePipe,MatButtonModule,RouterLink],changeDetection:ChangeDetectionStrategy.OnPush,templateUrl:'./cutoff-list.html'})
 export class CutoffList {
   private http=inject(HttpClient);
   protected month=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Lima',year:'numeric',month:'2-digit'}).format(new Date());

@@ -4,7 +4,13 @@
     <p class="alert-error" role="alert">{{ error }}</p>
   }
   <form class="login-form" (ngSubmit)="iniciarSesion()" novalidate>
-    <label for="codigo">Usuario, DNI o RUC</label>
+    <span class="field-label">
+      <label for="codigo">Usuario, DNI o RUC</label>
+      <app-field-help
+        field="Usuario, DNI o RUC"
+        message="Escribe el usuario con el que te registraste. Si usas tu DNI, ingresa 8 dígitos. Si usas tu RUC, ingresa 11."
+      />
+    </span>
     <input
       id="codigo"
       name="codigo"
@@ -13,7 +19,13 @@
       autocomplete="username"
       required
     />
-    <label for="contrasena">Contraseña</label>
+    <span class="field-label">
+      <label for="contrasena">Contraseña</label>
+      <app-field-help
+        field="Contraseña"
+        message="Escribe la contraseña de tu cuenta tal como la creaste. Distingue entre mayúsculas y minúsculas."
+      />
+    </span>
     <input
       id="contrasena"
       name="contrasena"

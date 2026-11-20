@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../shared/ui/field-help/field-help';
 import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -6,7 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../core/services/auth.service';
 
 interface Business {id?:number; ruc:string; razonSocial:string; direccion:string; telefono:string; giroId:number|null; estado:boolean; contrasena?:string}
-@Component({selector:'app-business-admin',imports:[FormsModule,MatButtonModule],changeDetection:ChangeDetectionStrategy.OnPush,
+@Component({selector:'app-business-admin',imports:[FieldHelp, FormsModule,MatButtonModule],changeDetection:ChangeDetectionStrategy.OnPush,
 templateUrl:'./business-admin.html'})
 export class BusinessAdmin {
   private http=inject(HttpClient);

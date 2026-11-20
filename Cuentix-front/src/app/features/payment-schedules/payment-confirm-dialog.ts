@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../shared/ui/field-help/field-help';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { CurrencyPipe } from '@angular/common';
@@ -14,7 +15,7 @@ import {
 } from '../../financial-engine/domain/schedule-domain';
 @Component({
   selector: 'app-payment-confirm',
-  imports: [CurrencyPipe, FormsModule, MatDialogModule, MatButtonModule],
+  imports: [FieldHelp, CurrencyPipe, FormsModule, MatDialogModule, MatButtonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './payment-confirm-dialog.html',
   styleUrl: './payment-confirm-dialog.scss',
