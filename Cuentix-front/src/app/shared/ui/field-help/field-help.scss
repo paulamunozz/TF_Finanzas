@@ -1,0 +1,70 @@
+:host {
+  display: inline-flex;
+  flex: none;
+  align-self: baseline;
+}
+
+button {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 15px;
+  block-size: 15px;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ds-help-icon);
+  font: 700 11px/1 var(--ds-font-family);
+  cursor: pointer;
+}
+
+button::before {
+  position: absolute;
+  inset: -5px;
+  content: '';
+}
+
+button:hover,
+button:focus-visible,
+:host:has(:popover-open) button {
+  color: var(--ds-primary);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--ds-primary);
+  outline-offset: 2px;
+}
+
+.field-tooltip {
+  position: fixed;
+  inset: auto;
+  width: max-content;
+  max-width: 240px;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+}
+
+.field-tooltip::before {
+  position: absolute;
+  z-index: -1;
+  inset: -5px 0;
+  content: '';
+}
+
+.field-tooltip-content {
+  display: block;
+  max-height: var(--field-help-max-height, none);
+  overflow: auto;
+  padding: 8px 10px;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-md);
+  color: var(--ds-foreground);
+  font: 400 13px/1.45 var(--ds-font-family);
+  overflow-wrap: anywhere;
+}

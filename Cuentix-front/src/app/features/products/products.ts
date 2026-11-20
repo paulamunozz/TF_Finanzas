@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../shared/ui/field-help/field-help';
 import { MatMenuModule } from '@angular/material/menu';
 import { HttpClient } from '@angular/common/http';
 import { DecimalPipe } from '@angular/common';
@@ -10,7 +11,7 @@ import { CatalogProduct } from '../../core/models/catalog-product.model';
 import { CatalogStore } from '../../core/data-access/catalog.store';
 @Component({
   selector: 'app-products',
-  imports: [MatMenuModule, DecimalPipe, FormsModule, MatButtonModule, PageHeader],
+  imports: [FieldHelp, MatMenuModule, DecimalPipe, FormsModule, MatButtonModule, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './products.html',
   styleUrl: './products.scss',

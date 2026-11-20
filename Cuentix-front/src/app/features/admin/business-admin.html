@@ -3,12 +3,66 @@
 @if(error()){<p role="alert">{{error()}} <button mat-button (click)="load()">Reintentar</button></p>}
 @if(draft; as d){<form #form="ngForm" (ngSubmit)="form.valid && save()" class="admin-form">
 <h2>{{ d.id ? 'Editar negocio' : 'Registrar negocio' }}</h2>
-<label>Razón social<input name="name" required [(ngModel)]="d.razonSocial"></label>
-<label>RUC<input name="ruc" required pattern="[0-9]{11}" [(ngModel)]="d.ruc"></label>
-<label>Giro<select name="giro" required [(ngModel)]="d.giroId">@for(g of giros();track g.id){<option [ngValue]="g.id">{{g.nombre}}</option>}</select></label>
-<label>Dirección<input name="address" required [(ngModel)]="d.direccion"></label>
-<label>Teléfono<input name="phone" required pattern="9[0-9]{8}" [(ngModel)]="d.telefono"></label>
-<label>Contraseña {{ d.id ? '(opcional)' : '' }}<input name="password" type="password" autocomplete="new-password" minlength="8" [required]="!d.id" [(ngModel)]="d.contrasena"></label>
+<div class="help-field">
+  <span class="field-label">
+    <label for="business-name">Razón social</label>
+    <app-field-help
+      field="Razón social"
+      message="Escribe el nombre legal completo del negocio según su inscripción en el RUC."
+    />
+  </span>
+  <input id="business-name" name="name" required [(ngModel)]="d.razonSocial">
+</div>
+<div class="help-field">
+  <span class="field-label">
+    <label for="business-ruc">RUC</label>
+    <app-field-help
+      field="RUC"
+      message="Ingresa los 11 dígitos del RUC del negocio, sin espacios ni guiones."
+    />
+  </span>
+  <input id="business-ruc" name="ruc" required pattern="[0-9]{11}" [(ngModel)]="d.ruc">
+</div>
+<div class="help-field">
+  <span class="field-label">
+    <label for="business-sector">Giro</label>
+    <app-field-help
+      field="Giro"
+      message="Selecciona la actividad económica principal del negocio entre las opciones de la lista."
+    />
+  </span>
+  <select id="business-sector" name="giro" required [(ngModel)]="d.giroId">@for(g of giros();track g.id){<option [ngValue]="g.id">{{g.nombre}}</option>}</select>
+</div>
+<div class="help-field">
+  <span class="field-label">
+    <label for="business-address">Dirección</label>
+    <app-field-help
+      field="Dirección"
+      message="Escribe la dirección del negocio. Incluye la vía, el número y el distrito cuando corresponda."
+    />
+  </span>
+  <input id="business-address" name="address" required [(ngModel)]="d.direccion">
+</div>
+<div class="help-field">
+  <span class="field-label">
+    <label for="business-phone">Teléfono</label>
+    <app-field-help
+      field="Teléfono"
+      message="Ingresa el celular de contacto del negocio. Debe empezar por 9 y tener 9 dígitos."
+    />
+  </span>
+  <input id="business-phone" name="phone" required pattern="9[0-9]{8}" [(ngModel)]="d.telefono">
+</div>
+<div class="help-field">
+  <span class="field-label">
+    <label for="business-password">Contraseña {{ d.id ? '(opcional)' : '' }}</label>
+    <app-field-help
+      field="Contraseña"
+      message="Ingresa al menos 8 caracteres para el acceso del negocio. Si estás editando y deseas conservar la contraseña actual, deja el campo vacío."
+    />
+  </span>
+  <input id="business-password" name="password" type="password" autocomplete="new-password" minlength="8" [required]="!d.id" [(ngModel)]="d.contrasena">
+</div>
 <button mat-button type="button" (click)="draft=null">Cancelar</button><button mat-flat-button [disabled]="busy() || form.invalid">Guardar</button></form>}
 @if(pending();as row){<p role="alert">¿{{row.estado?'Desactivar':'Reactivar'}} {{row.razonSocial}}? <button mat-button (click)="pending.set(null)">Cancelar</button><button mat-button [disabled]="busy()" (click)="toggle(row)">Confirmar</button></p>}
 @if(rows();as data){<div class="table-scroll"><table class="data-table"><thead><tr><th>Negocio</th><th>RUC</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>

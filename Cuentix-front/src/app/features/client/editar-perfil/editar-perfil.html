@@ -8,22 +8,46 @@
     <div class="tarjeta-editar">
       <form class="formulario" (ngSubmit)="guardarDatos()" novalidate>
         <div class="campo">
-          <label for="dni">DNI</label>
+          <span class="field-label">
+            <label for="dni">DNI</label>
+            <app-field-help
+              field="DNI"
+              message="Aquí puedes consultar el DNI de 8 dígitos asociado a tu cuenta. El campo es de solo lectura."
+            />
+          </span>
           <input id="dni" name="dni" type="text" [value]="dni" readonly />
         </div>
 
         <div class="campo">
-          <label for="nombre">Nombre</label>
+          <span class="field-label">
+            <label for="nombre">Nombre</label>
+            <app-field-help
+              field="Nombre"
+              message="Actualiza tus nombres tal como figuran en tu DNI. Puedes usar letras, espacios, puntos, apóstrofos y guiones."
+            />
+          </span>
           <input id="nombre" name="nombre" type="text" [(ngModel)]="nombre" required />
         </div>
 
         <div class="campo">
-          <label for="apellido">Apellido</label>
+          <span class="field-label">
+            <label for="apellido">Apellido</label>
+            <app-field-help
+              field="Apellido"
+              message="Actualiza tus apellidos completos. Puedes usar letras, espacios, puntos, apóstrofos y guiones."
+            />
+          </span>
           <input id="apellido" name="apellido" type="text" [(ngModel)]="apellido" required />
         </div>
 
         <div class="campo">
-          <label for="contrasenaActual"> Contraseña actual </label>
+          <span class="field-label">
+            <label for="contrasenaActual">Contraseña actual</label>
+            <app-field-help
+              field="Contraseña actual"
+              message="Escribe tu contraseña vigente si quieres cambiarla. Para actualizar solo tus datos personales, deja este campo vacío."
+            />
+          </span>
 
           <input
             id="contrasenaActual"
@@ -36,7 +60,13 @@
         </div>
 
         <div class="campo">
-          <label for="contrasena">Nueva contraseña</label>
+          <span class="field-label">
+            <label for="contrasena">Nueva contraseña</label>
+            <app-field-help
+              field="Nueva contraseña"
+              message="Escribe una contraseña de al menos 8 caracteres si quieres reemplazar la actual. Deja el campo vacío para conservarla."
+            />
+          </span>
           <input
             id="contrasena"
             name="contrasena"
@@ -48,7 +78,13 @@
         </div>
 
         <div class="campo">
-          <label for="confirmar"> Confirmar contraseña </label>
+          <span class="field-label">
+            <label for="confirmar">Confirmar contraseña</label>
+            <app-field-help
+              field="Confirmar contraseña"
+              message="Si cambias tu contraseña, repite aquí la nueva exactamente como la escribiste."
+            />
+          </span>
           <input
             id="confirmar"
             name="confirmar"
@@ -59,7 +95,13 @@
         </div>
 
         <div class="campo">
-          <label for="telefono">Teléfono</label>
+          <span class="field-label">
+            <label for="telefono">Teléfono</label>
+            <app-field-help
+              field="Teléfono"
+              message="Escribe el celular que deseas asociar a tu perfil. Debe tener 9 dígitos y empezar por 9."
+            />
+          </span>
           <input
             id="telefono"
             name="telefono"
@@ -95,7 +137,13 @@
 
         @if (confirmarEliminacion) {
           <div class="confirmar-eliminacion">
-            <label for="contrasenaEliminar"> Ingrese su contraseña actual para confirmar: </label>
+            <span class="field-label">
+              <label for="contrasenaEliminar">Ingrese su contraseña actual para confirmar:</label>
+              <app-field-help
+                field="Contraseña para confirmar"
+                message="Ingresa la contraseña vigente de tu cuenta para autorizar su desactivación."
+              />
+            </span>
 
             <input
               id="contrasenaEliminar"

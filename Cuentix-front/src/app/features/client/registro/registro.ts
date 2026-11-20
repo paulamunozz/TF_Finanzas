@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../../shared/ui/field-help/field-help';
 import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -5,7 +6,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-registro',
-  imports: [FormsModule, RouterLink],
+  imports: [FieldHelp, FormsModule, RouterLink],
   templateUrl: './registro.html',
   styleUrl: './registro.css',
 })

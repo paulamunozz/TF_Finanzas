@@ -78,8 +78,15 @@
       </div>
       <div class="table-toolbar">
         @if (!purchaseId) {
-          <label
-            >Compra<select
+          <div class="help-field">
+            <span class="field-label">
+              <label for="schedule-purchase">Compra</label>
+              <app-field-help
+                field="Compra"
+                message="Selecciona una compra para ver solo sus cuotas. Elige Todas las compras para consultar el cronograma completo."
+              />
+            </span>
+            <select id="schedule-purchase"
               [ngModel]="purchaseFilter()"
               (ngModelChange)="purchaseFilter.set($event)"
             >
@@ -87,26 +94,58 @@
               @for (purchase of data.purchases; track purchase.id) {
                 <option [value]="purchase.id">{{ purchase.id }}</option>
               }
-            </select></label
-          >
+            </select>
+          </div>
         }
-        <label
-          >Estado<select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+        <div class="help-field">
+          <span class="field-label">
+            <label for="schedule-status">Estado</label>
+            <app-field-help
+              field="Estado"
+              message="Filtra las cuotas por estado pendiente, vencida o cancelada. Elige Todos para incluir los tres estados."
+            />
+          </span>
+          <select id="schedule-status" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
             <option value="">Todos</option>
             <option value="pending">Pendiente</option>
             <option value="overdue">Vencida</option>
             <option value="paid">Cancelada</option>
-          </select></label
-        ><label
-          >Desde<input type="date" [ngModel]="from()" (ngModelChange)="from.set($event)" /></label
-        ><label>Hasta<input type="date" [ngModel]="to()" (ngModelChange)="to.set($event)" /></label
-        ><label
-          >Orden<select [ngModel]="order()" (ngModelChange)="order.set($event)">
+          </select>
+        </div>
+        <div class="help-field">
+          <span class="field-label">
+            <label for="schedule-from">Desde</label>
+            <app-field-help
+              field="Desde"
+              message="Selecciona la primera fecha de vencimiento que deseas incluir. Deja el campo vacío para consultar desde la fecha más antigua."
+            />
+          </span>
+          <input id="schedule-from" type="date" [ngModel]="from()" (ngModelChange)="from.set($event)" />
+        </div>
+        <div class="help-field">
+          <span class="field-label">
+            <label for="schedule-to">Hasta</label>
+            <app-field-help
+              field="Hasta"
+              message="Selecciona la última fecha de vencimiento que deseas incluir. Deja el campo vacío para consultar hasta la fecha más reciente."
+            />
+          </span>
+          <input id="schedule-to" type="date" [ngModel]="to()" (ngModelChange)="to.set($event)" />
+        </div>
+        <div class="help-field">
+          <span class="field-label">
+            <label for="schedule-order">Orden</label>
+            <app-field-help
+              field="Orden"
+              message="Selecciona cómo se organizan las cuotas. Puedes verlas por fecha de vencimiento, mayor importe o estado."
+            />
+          </span>
+          <select id="schedule-order" [ngModel]="order()" (ngModelChange)="order.set($event)">
             <option value="date">Vencimiento</option>
             <option value="amount">Mayor importe</option>
             <option value="status">Estado</option>
-          </select></label
-        >
+          </select>
+        </div>
       </div>
       <div class="schedule-table">
         <table class="data-table">
