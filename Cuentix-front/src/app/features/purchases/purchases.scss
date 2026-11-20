@@ -78,7 +78,7 @@
   color: var(--ds-muted);
   font-size: 12px;
 }
-label {
+.help-field {
   display: grid;
   gap: 6px;
   color: var(--ds-muted);
@@ -131,7 +131,7 @@ input {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.item > label {
+.item > .help-field {
   min-width: 0;
 }
 .item b {

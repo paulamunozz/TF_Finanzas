@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../shared/ui/field-help/field-help';
 import { CurrencyPipe, DatePipe, PercentPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -12,7 +13,7 @@ import { CatalogStore } from '../../core/data-access/catalog.store';
 import { isoToday } from '../../financial-engine/domain/schedule-domain';
 @Component({
   selector: 'app-purchases',
-  imports: [DatePipe, PercentPipe, RouterLink, CurrencyPipe, FormsModule, MatButtonModule, MatSnackBarModule, PageHeader],
+  imports: [FieldHelp, DatePipe, PercentPipe, RouterLink, CurrencyPipe, FormsModule, MatButtonModule, MatSnackBarModule, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './purchases.html',
   styleUrl: './purchases.scss',

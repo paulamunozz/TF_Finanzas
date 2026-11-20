@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../shared/ui/field-help/field-help';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,7 +11,7 @@ import { PageHeader } from '../../shared/ui/page-header/page-header';
 
 @Component({
   selector: 'app-client-form',
-  imports: [ReactiveFormsModule, MatButtonModule, MatSnackBarModule, PageHeader, RouterLink],
+  imports: [FieldHelp, ReactiveFormsModule, MatButtonModule, MatSnackBarModule, PageHeader, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './client-form.html',
   styleUrl: './client-form.scss',

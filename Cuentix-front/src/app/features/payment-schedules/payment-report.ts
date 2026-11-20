@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../shared/ui/field-help/field-help';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -19,7 +20,7 @@ import { PageHeader } from '../../shared/ui/page-header/page-header';
 import { PaymentConfirmDialog } from './payment-confirm-dialog';
 @Component({
   selector: 'app-payment-report',
-  imports: [CurrencyPipe, DatePipe, FormsModule, RouterLink, MatButtonModule, PageHeader],
+  imports: [FieldHelp, CurrencyPipe, DatePipe, FormsModule, RouterLink, MatButtonModule, PageHeader],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './payment-report.html',
   styleUrl: './payment-report.scss',

@@ -1,3 +1,4 @@
+import { FieldHelp } from '../../../shared/ui/field-help/field-help';
 import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -7,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule],
+  imports: [FieldHelp, FormsModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })

@@ -6,11 +6,18 @@
     <p role="alert">{{ error() }} <button mat-button (click)="load()">Reintentar</button></p>
   } @else if (data(); as state) {
     @if (currencies().length > 1) {
-      <label class="currency-selector">Moneda de la cartera
-        <select #selection [value]="currency()" (change)="currency.set(selection.value)">
+      <div class="help-field currency-selector">
+        <span class="field-label">
+          <label for="dashboard-currency">Moneda de la cartera</label>
+          <app-field-help
+            field="Moneda de la cartera"
+            message="Selecciona la moneda en la que quieres consultar los saldos, créditos activos y próximos vencimientos."
+          />
+        </span>
+        <select id="dashboard-currency" #selection [value]="currency()" (change)="currency.set(selection.value)">
           @for (code of currencies(); track code) { <option [value]="code">{{ code }}</option> }
         </select>
-      </label>
+      </div>
     }
     <div class="metrics">
       <article class="principal"><p>Cuentas por cobrar</p><strong>{{ pending() | currency:currency() }}</strong><small>Incluye intereses y mora al día</small></article>

@@ -15,7 +15,13 @@
       </header>
       <div class="fields">
         <div class="ui-field">
-          <label for="dni">DNI</label>
+          <span class="field-label">
+            <label for="dni">DNI</label>
+            <app-field-help
+              field="DNI"
+              message="Ingresa los 8 dígitos del DNI de un cliente que ya se haya registrado en Cuentix."
+            />
+          </span>
           <div class="field-control">
             <input
               id="dni"
@@ -30,7 +36,13 @@
           </div>
         </div>
         <div class="ui-field">
-          <label for="name">Nombre completo</label>
+          <span class="field-label">
+            <label for="name">Nombre completo</label>
+            <app-field-help
+              field="Nombre completo"
+              message="Escribe los nombres y apellidos del titular tal como figuran en su perfil de Cuentix."
+            />
+          </span>
           <div class="field-control">
             <input
               id="name"
@@ -43,7 +55,13 @@
           </div>
         </div>
         <div class="ui-field">
-          <label for="currency">Moneda</label>
+          <span class="field-label">
+            <label for="currency">Moneda</label>
+            <app-field-help
+              field="Moneda"
+              message="Elige soles (PEN) o dólares (USD) para la línea de crédito y las obligaciones de esta cuenta."
+            />
+          </span>
           <div class="field-control">
             <select
               id="currency"
@@ -67,7 +85,13 @@
       </header>
       <div class="fields">
         <div class="ui-field">
-          <label for="compensatoryRate">Tasa compensatoria</label>
+          <span class="field-label">
+            <label for="compensatoryRate">Tasa compensatoria</label>
+            <app-field-help
+              field="Tasa compensatoria"
+              message="Ingresa el interés del financiamiento como porcentaje positivo del período seleccionado. Por ejemplo, escribe 2 para una tasa de 2 %."
+            />
+          </span>
           <div class="field-control">
             <input
               id="compensatoryRate"
@@ -84,7 +108,13 @@
           </div>
         </div>
         <div class="ui-field">
-          <label for="rateType">Tipo de tasa</label>
+          <span class="field-label">
+            <label for="rateType">Tipo de tasa</label>
+            <app-field-help
+              field="Tipo de tasa"
+              message="Selecciona Nominal (TN) si la tasa se convertirá según su capitalización, o Efectiva (TE) si ya incorpora la capitalización del período."
+            />
+          </span>
           <div class="field-control">
             <select
               id="rateType"
@@ -97,7 +127,13 @@
           </div>
         </div>
         <div class="ui-field">
-          <label for="ratePeriod">Periodicidad</label>
+          <span class="field-label">
+            <label for="ratePeriod">Periodicidad</label>
+            <app-field-help
+              field="Periodicidad"
+              message="Indica si la tasa compensatoria ingresada corresponde a un mes o a un día."
+            />
+          </span>
           <div class="field-control">
             <select
               id="ratePeriod"
@@ -113,7 +149,13 @@
         </div>
         @if (form.controls.rateType.value === 'TN') {
           <div class="ui-field">
-            <label for="capitalizationPeriod">Capitalización</label>
+            <span class="field-label">
+              <label for="capitalizationPeriod">Capitalización</label>
+              <app-field-help
+                field="Capitalización"
+                message="Para una tasa nominal, elige cada cuánto se capitaliza el interés al convertirla a tasa efectiva. Las opciones son mensual y diaria."
+              />
+            </span>
             <div class="field-control">
               <select
                 id="capitalizationPeriod"
@@ -130,7 +172,13 @@
           </div>
         }
         <div class="ui-field">
-          <label for="lateRate">Tasa moratoria</label>
+          <span class="field-label">
+            <label for="lateRate">Tasa moratoria</label>
+            <app-field-help
+              field="Tasa moratoria"
+              message="Ingresa un porcentaje mayor que cero para calcular el interés que se cobra por el retraso de una cuota. Escribe solo el número."
+            />
+          </span>
           <div class="field-control">
             <input
               id="lateRate"
@@ -145,7 +193,13 @@
           </div>
         </div>
         <div class="ui-field">
-          <label for="lateRateType">Tipo de tasa moratoria</label>
+          <span class="field-label">
+            <label for="lateRateType">Tipo de tasa moratoria</label>
+            <app-field-help
+              field="Tipo de tasa moratoria"
+              message="Indica si el porcentaje de mora ingresado se expresa como tasa nominal (TN) o efectiva (TE)."
+            />
+          </span>
           <div class="field-control">
             <select
               id="lateRateType"
@@ -175,7 +229,13 @@
       </header>
       <div class="fields">
         <div class="ui-field">
-          <label for="creditLine">Línea de crédito máxima</label>
+          <span class="field-label">
+            <label for="creditLine">Línea de crédito máxima</label>
+            <app-field-help
+              field="Línea de crédito máxima"
+              message="Escribe el monto máximo que puede financiar esta cuenta en la moneda seleccionada. El mínimo es 0,01."
+            />
+          </span>
           <div class="field-control">
             <span class="field-prefix">{{ form.controls.currency.value }}</span
             ><input id="creditLine" type="number" step="0.01" formControlName="creditLine" />
@@ -185,7 +245,13 @@
           </div>
         </div>
         <div class="ui-field">
-          <label for="maxMonths">Plazo máximo</label>
+          <span class="field-label">
+            <label for="maxMonths">Plazo máximo</label>
+            <app-field-help
+              field="Plazo máximo"
+              message="Indica cuántos meses como máximo puede durar el financiamiento de una compra. Ingresa un número entero del 1 al 60."
+            />
+          </span>
           <div class="field-control">
             <input
               id="maxMonths"
@@ -201,7 +267,13 @@
           </div>
         </div>
         <div class="ui-field">
-          <label for="cutOffDay">Día de corte</label>
+          <span class="field-label">
+            <label for="cutOffDay">Día de corte</label>
+            <app-field-help
+              field="Día de corte"
+              message="Ingresa el día del mes, del 1 al 31, en que cierra el período de compras de la cuenta."
+            />
+          </span>
           <div class="field-control">
             <input
               id="cutOffDay"
@@ -217,7 +289,13 @@
           </div>
         </div>
         <div class="ui-field">
-          <label for="paymentDay">Día de pago</label>
+          <span class="field-label">
+            <label for="paymentDay">Día de pago</label>
+            <app-field-help
+              field="Día de pago"
+              message="Ingresa el día del mes, del 1 al 31, en que vencen las obligaciones programadas de la cuenta."
+            />
+          </span>
           <div class="field-control">
             <input
               id="paymentDay"
@@ -237,7 +315,16 @@
     @if (error()) {
       <p class="error" role="alert">{{ error() }}</p>
     }
-    <label class="ui-field">Hora de corte (opcional)<input type="time" formControlName="cutoffTime" /></label>
+    <span class="help-field ui-field">
+      <span class="field-label">
+        <label for="client-cutoff-time">Hora de corte (opcional)</label>
+        <app-field-help
+          field="Hora de corte"
+          message="Indica la hora local en la que cierra el período de compras el día de corte. Es opcional. Por ejemplo, 18:00."
+        />
+      </span>
+      <input id="client-cutoff-time" type="time" formControlName="cutoffTime" />
+    </span>
     <footer>
       <a mat-button routerLink="/clients">Cancelar</a
       ><button mat-flat-button type="submit" [disabled]="saving()">

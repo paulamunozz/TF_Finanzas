@@ -24,13 +24,20 @@
           <p>Selecciona la cuenta de crédito</p>
         </div>
       </header>
-      <label
-        >Cliente<select [ngModel]="clientId()" (ngModelChange)="clientId.set($event)">
+      <div class="help-field">
+        <span class="field-label">
+          <label for="purchase-client">Cliente</label>
+          <app-field-help
+            field="Cliente"
+            message="Selecciona la cuenta que financiará la compra. Usa el DNI para distinguir clientes con el mismo nombre."
+          />
+        </span>
+        <select id="purchase-client" [ngModel]="clientId()" (ngModelChange)="clientId.set($event)">
           @for (client of clients(); track client.id) {
             <option [value]="client.id">{{ client.name }} · DNI {{ client.dni }}</option>
           }
-        </select></label
-      >
+        </select>
+      </div>
       <div class="credit">
         <span
           ><small>Línea máxima</small><b>{{ creditLine() | currency: currency() }}</b></span
@@ -55,13 +62,20 @@
           <span
             ><b>{{ item.name }}</b
             ><small>{{ item.price | currency: currency() }} por {{ item.unit }}</small></span
-          ><label
-            >Cantidad<input
+          ><div class="help-field">
+            <span class="field-label">
+              <label [attr.for]="'purchase-quantity-' + item.id">Cantidad</label>
+              <app-field-help
+                [field]="'Cantidad de ' + item.name"
+                message="Ingresa un número entero de unidades del artículo. Usa 0 para dejarlo fuera de la compra."
+              />
+            </span>
+            <input [id]="'purchase-quantity-' + item.id"
               type="number"
               min="0"
               [ngModel]="item.quantity"
-              (ngModelChange)="quantity(item.id, $event)" /></label
-          ><strong>{{ item.price * item.quantity | currency: currency() }}</strong>
+              (ngModelChange)="quantity(item.id, $event)" />
+          </div><strong>{{ item.price * item.quantity | currency: currency() }}</strong>
         </div>
       } @empty {
         @if(catalog.loading()){<p role="status">Cargando catálogo…</p>}@else if(!catalog.error()){<p>Agrega un producto al <a routerLink="/products">catálogo</a> para registrar una compra.</p>}
@@ -76,19 +90,51 @@
         </div>
       </header>
       <div class="fields">
-        <label
-          >Modalidad<select [(ngModel)]="mode">
+        <div class="help-field">
+          <span class="field-label">
+            <label for="purchase-mode">Modalidad</label>
+            <app-field-help
+              field="Modalidad"
+              message="Elige Pago único para una sola obligación o Cuotas mensuales para distribuir el pago en varios meses."
+            />
+          </span>
+          <select id="purchase-mode" [(ngModel)]="mode">
             <option value="installments">Cuotas mensuales</option>
             <option value="single">Pago único</option>
-          </select></label
-        >
+          </select>
+        </div>
         @if (mode === 'installments') {
-          <label
-            >Número de cuotas<input type="number" [(ngModel)]="months" min="1" [max]="maxMonths()"
-          /></label>
+          <div class="help-field">
+            <span class="field-label">
+              <label for="purchase-installments">Número de cuotas</label>
+              <app-field-help
+                field="Número de cuotas"
+                message="Ingresa un número entero desde 1 hasta el plazo máximo de la cuenta seleccionada."
+              />
+            </span>
+            <input id="purchase-installments" type="number" [(ngModel)]="months" min="1" [max]="maxMonths()" />
+          </div>
         }
-        <label>Fecha de compra<input type="date" [(ngModel)]="purchaseDate" [max]="today" /></label>
-        <label>Hora de compra<input type="time" [(ngModel)]="purchaseTime" /></label>
+        <div class="help-field">
+          <span class="field-label">
+            <label for="purchase-date">Fecha de compra</label>
+            <app-field-help
+              field="Fecha de compra"
+              message="Selecciona en el calendario el día en que se realizó la compra. Puede ser hoy o una fecha anterior."
+            />
+          </span>
+          <input id="purchase-date" type="date" [(ngModel)]="purchaseDate" [max]="today" />
+        </div>
+        <div class="help-field">
+          <span class="field-label">
+            <label for="purchase-time">Hora de compra</label>
+            <app-field-help
+              field="Hora de compra"
+              message="Indica la hora local de la compra, por ejemplo, 14:30. La hora se usa junto con la fecha para determinar el corte. Es opcional."
+            />
+          </span>
+          <input id="purchase-time" type="time" [(ngModel)]="purchaseTime" />
+        </div>
       </div>
       <p class="note">
         El subtotal no incluye intereses. Al confirmar, el servidor valida el crédito disponible y
