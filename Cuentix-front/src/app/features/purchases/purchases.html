@@ -1,0 +1,184 @@
+<section class="purchase">
+  <app-page-header
+    title="Registrar compra"
+    description="Crea una compra financiada y valida las condiciones antes de confirmar."
+    ><a mat-stroked-button routerLink="/purchases/history"
+      >Ver compras y cronogramas</a
+    ></app-page-header
+  >
+</section>
+
+@if (error()) {
+  <p role="alert">{{ error() }}</p>
+}
+@if (catalog.error()) {
+  <p role="alert">{{ catalog.error() }}</p>
+}
+<div class="checkout">
+  <main>
+    <section class="card">
+      <header>
+        <span>1</span>
+        <div>
+          <h2>Cliente</h2>
+          <p>Selecciona la cuenta de crédito</p>
+        </div>
+      </header>
+      <div class="help-field">
+        <span class="field-label">
+          <label for="purchase-client">Cliente</label>
+          <app-field-help
+            field="Cliente"
+            message="Selecciona la cuenta que financiará la compra. Usa el DNI para distinguir clientes con el mismo nombre."
+          />
+        </span>
+        <select id="purchase-client" [ngModel]="clientId()" (ngModelChange)="clientId.set($event)">
+          @for (client of clients(); track client.id) {
+            <option [value]="client.id">{{ client.name }} · DNI {{ client.dni }}</option>
+          }
+        </select>
+      </div>
+      <div class="credit">
+        <span
+          ><small>Línea máxima</small><b>{{ creditLine() | currency: currency() }}</b></span
+        ><span
+          ><small>Crédito utilizado</small><b>{{ usedCredit() | currency: currency() }}</b></span
+        ><span
+          ><small>Disponible</small
+          ><b class="available">{{ available() | currency: currency() }}</b></span
+        >
+      </div>
+    </section>
+    <section class="card">
+      <header>
+        <span>2</span>
+        <div>
+          <h2>Productos</h2>
+          <p>Agrega artículos y cantidades</p>
+        </div>
+      </header>
+      @for (item of items(); track item.id) {
+        <div class="item">
+          <span
+            ><b>{{ item.name }}</b
+            ><small>{{ item.price | currency: currency() }} por {{ item.unit }}</small></span
+          ><div class="help-field">
+            <span class="field-label">
+              <label [attr.for]="'purchase-quantity-' + item.id">Cantidad</label>
+              <app-field-help
+                [field]="'Cantidad de ' + item.name"
+                message="Ingresa un número entero de unidades del artículo. Usa 0 para dejarlo fuera de la compra."
+              />
+            </span>
+            <input [id]="'purchase-quantity-' + item.id"
+              type="number"
+              min="0"
+              [ngModel]="item.quantity"
+              (ngModelChange)="quantity(item.id, $event)" />
+          </div><strong>{{ item.price * item.quantity | currency: currency() }}</strong>
+        </div>
+      } @empty {
+        @if(catalog.loading()){<p role="status">Cargando catálogo…</p>}@else if(!catalog.error()){<p>Agrega un producto al <a routerLink="/products">catálogo</a> para registrar una compra.</p>}
+      }
+    </section>
+    <section class="card">
+      <header>
+        <span>3</span>
+        <div>
+          <h2>Condiciones de financiamiento</h2>
+          <p>Define cómo se pagará la compra</p>
+        </div>
+      </header>
+      <div class="fields">
+        <div class="help-field">
+          <span class="field-label">
+            <label for="purchase-mode">Modalidad</label>
+            <app-field-help
+              field="Modalidad"
+              message="Elige Pago único para una sola obligación o Cuotas mensuales para distribuir el pago en varios meses."
+            />
+          </span>
+          <select id="purchase-mode" [(ngModel)]="mode">
+            <option value="installments">Cuotas mensuales</option>
+            <option value="single">Pago único</option>
+          </select>
+        </div>
+        @if (mode === 'installments') {
+          <div class="help-field">
+            <span class="field-label">
+              <label for="purchase-installments">Número de cuotas</label>
+              <app-field-help
+                field="Número de cuotas"
+                message="Ingresa un número entero desde 1 hasta el plazo máximo de la cuenta seleccionada."
+              />
+            </span>
+            <input id="purchase-installments" type="number" [(ngModel)]="months" min="1" [max]="maxMonths()" />
+          </div>
+        }
+        <div class="help-field">
+          <span class="field-label">
+            <label for="purchase-date">Fecha de compra</label>
+            <app-field-help
+              field="Fecha de compra"
+              message="Selecciona en el calendario el día en que se realizó la compra. Puede ser hoy o una fecha anterior."
+            />
+          </span>
+          <input id="purchase-date" type="date" [(ngModel)]="purchaseDate" [max]="today" />
+        </div>
+        <div class="help-field">
+          <span class="field-label">
+            <label for="purchase-time">Hora de compra</label>
+            <app-field-help
+              field="Hora de compra"
+              message="Indica la hora local de la compra, por ejemplo, 14:30. La hora se usa junto con la fecha para determinar el corte. Es opcional."
+            />
+          </span>
+          <input id="purchase-time" type="time" [(ngModel)]="purchaseTime" />
+        </div>
+      </div>
+      <p class="note">
+        El subtotal no incluye intereses. Al confirmar, el servidor valida el crédito disponible y
+        guarda el cronograma definitivo.
+      </p>
+    </section>
+  </main>
+  <aside class="summary">
+    <h2>Resumen de compra</h2>
+    <div>
+      <span>Subtotal</span><b>{{ total() | currency: currency() }}</b>
+    </div>
+    <div>
+      <span>Modalidad</span><b>{{ mode === 'single' ? 'Pago único' : months + ' cuotas' }}</b>
+    </div>
+    @if (currentQuote(); as q) {
+      <div><span>Fecha de corte</span><b>{{ q.cutoff | date:'dd/MM/yyyy' }}</b></div>
+      <div><span>Primer vencimiento</span><b>{{ q.firstDue | date:'dd/MM/yyyy' }}</b></div>
+      <div><span>Tasa efectiva anual</span><b>{{ q.annualRate | percent:'1.2-7' }}</b></div>
+      <div><span>Interés de gracia</span><b>{{ q.graceInterest | currency:currency() }}</b></div>
+      <div><span>Disponible después</span><b>{{ q.availableAfter | currency:currency() }}</b></div>
+      <div class="total"><span>Total financiado</span><strong>{{ q.total | currency:currency() }}</strong></div>
+    }
+    @if (total() > available()) {
+      <p class="error">
+        La compra supera el crédito disponible por
+        {{ total() - available() | currency: currency() }}.
+      </p>
+    }
+    <button
+      mat-flat-button
+      type="button"
+      [disabled]="
+        total() <= 0 ||
+        total() > available() ||
+        !purchaseDate ||
+        purchaseDate > today ||
+        (mode === 'installments' && (months < 1 || months > maxMonths())) ||
+        saving() ||
+        !clientId()
+      "
+      (click)="confirm()"
+    >
+      {{ saving() ? 'Procesando…' : currentQuote() ? 'Confirmar compra' : 'Cotizar crédito' }}</button
+    ><small>La compra y las cuotas se guardan en el servidor.</small>
+  </aside>
+</div>

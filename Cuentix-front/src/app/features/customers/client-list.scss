@@ -1,0 +1,24 @@
+.page {
+  display: grid;
+  grid-template-columns:minmax(0,1fr);
+  gap: 24px;
+}
+
+.primary-action,
+.detail-action {
+  background: var(--ds-primary);
+  color: white;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--ds-border);
+  border-radius: 14px;
+  background: var(--ds-surface);
+}
+
+.empty {
+  padding: 40px;
+  color: var(--ds-muted);
+  text-align: center;
+}

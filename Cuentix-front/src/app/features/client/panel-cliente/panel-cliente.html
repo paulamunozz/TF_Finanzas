@@ -1,0 +1,32 @@
+<div class="panel-cliente">
+  <!-- Barra de navegación -->
+  <header class="barra-superior">
+    <!-- Logo Cuentix -->
+    <div class="marca">
+      <div class="logo">C</div>
+      <span>Cuentix</span>
+    </div>
+
+    <!-- Opciones de navegación -->
+    <nav class="menu">
+      <a routerLink="/cliente/reporte" routerLinkActive="activo" ariaCurrentWhenActive="page"> Reporte </a>
+
+      <a routerLink="/cliente/acuerdos" routerLinkActive="activo" ariaCurrentWhenActive="page"> Acuerdos </a>
+
+      <a
+        routerLink="/cliente/perfil"
+        routerLinkActive="activo" ariaCurrentWhenActive="page"
+        class="perfil-boton"
+        aria-label="Mi perfil"
+        title="Mi perfil"
+      >
+        Mi perfil
+      </a>
+    </nav>
+  </header>
+
+  <!-- Aquí se mostrarán las pantallas -->
+  <main class="contenido">
+    <router-outlet></router-outlet>
+  </main>
+</div>

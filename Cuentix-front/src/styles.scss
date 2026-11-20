@@ -1,0 +1,21 @@
+@use './styles/tokens';
+@use './styles/client';
+@use './styles/typography';
+@use './styles/material';
+@use './styles/utilities';
+@use './styles/forms';
+@use './styles/_refinement.scss';
+@import '@fontsource-variable/inter/index.css';
+:focus-visible { outline: 3px solid var(--ds-primary); outline-offset: 3px; }
+.admin-page { max-width: var(--ds-container); margin: auto; padding: clamp(1rem, 4vw, 3rem); }
+.admin-page header, .statement-sheet header { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.admin-form, .statement-sheet { margin-block: 1rem; padding: clamp(1rem, 3vw, 2rem); background:var(--ds-surface); border:1px solid var(--ds-border); border-radius:var(--ds-radius-md); }
+.admin-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%, 16rem),1fr)); gap:1rem; }
+.admin-form h2 {grid-column:1/-1;}
+.admin-form .help-field { display:grid; gap:.3rem; }
+.admin-form input,.admin-form select { min-width:0; min-height:44px; padding:.5rem; border:1px solid var(--ds-input); border-radius:var(--ds-radius-sm); }
+.table-scroll { overflow-x:auto; max-width:100%; }
+.statement-sheet header { margin-bottom:1rem; }
+.statement-sheet h2 { margin:0; }
+
+*, *::before, *::after { box-sizing: border-box; }

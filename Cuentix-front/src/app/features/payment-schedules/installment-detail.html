@@ -1,0 +1,115 @@
+@if (state(); as result) {
+  @if (result.data; as data) {
+    <section class="detail">
+      <app-page-header
+        [title]="'Cuota ' + data.item.number + ' de ' + data.item.totalInstallments"
+        [description]="data.client.name + ' · ' + data.purchase.id"
+        ><a mat-stroked-button [routerLink]="['/purchases', data.purchase.id, 'schedule']"
+          >Volver al cronograma</a
+        ></app-page-header
+      >
+      <div class="detail-context">
+        <span
+          >Vencimiento <b>{{ data.item.dueDate | date: 'dd/MM/yyyy' }}</b></span
+        ><span>{{ labels[status(data.item)] }}</span
+        ><a [routerLink]="['/clients', data.client.id, 'payments']"
+          >Todas las obligaciones del cliente</a
+        >
+      </div>
+      <div class="detail-layout">
+        <article class="breakdown">
+          <h2>Composición financiera</h2>
+          <dl>
+            <div>
+              <dt>Amortización de capital</dt>
+              <dd>{{ data.item.amortization | currency: data.purchase.currency }}</dd>
+            </div>
+            <div>
+              <dt>Interés compensatorio</dt>
+              <dd>{{ data.item.interest | currency: data.purchase.currency }}</dd>
+            </div>
+            <div>
+              <dt>Cuota programada</dt>
+              <dd>{{ data.item.installmentAmount | currency: data.purchase.currency }}</dd>
+            </div>
+            <div>
+              <dt>Mora {{ data.item.cancelled ? 'pagada' : 'exigible' }}</dt>
+              <dd>{{ data.item.lateAmount | currency: data.purchase.currency }}</dd>
+            </div>
+            <div class="total">
+              <dt>Total {{ data.item.cancelled ? 'cancelado' : 'exigible' }}</dt>
+              <dd>
+                {{
+                  data.item.installmentAmount + data.item.lateAmount
+                    | currency: data.purchase.currency
+                }}
+              </dd>
+            </div>
+          </dl>
+          @if (data.item.paidAt) {
+            <p>Fecha efectiva: {{ data.item.paidAt | date: 'dd/MM/yyyy' }}</p>
+          }
+          @if (!data.item.cancelled) {
+            <button mat-flat-button (click)="pay()">Registrar cancelación completa</button>
+          }
+        </article>
+        <article class="purchase">
+          <h2>Compra de origen</h2>
+          <dl>
+            <div>
+              <dt>Identificador</dt>
+              <dd>{{ data.purchase.id }}</dd>
+            </div>
+            <div>
+              <dt>Cuenta de crédito</dt>
+              <dd>{{ data.purchase.accountId }}</dd>
+            </div>
+            <div>
+              <dt>Fecha de compra</dt>
+              <dd>{{ data.purchase.purchaseDate | date: 'dd/MM/yyyy' }}</dd>
+            </div>
+            <div>
+              <dt>Principal de la compra</dt>
+              <dd>{{ data.purchase.principal | currency: data.purchase.currency }}</dd>
+            </div>
+          </dl>
+          <a mat-button [routerLink]="['/purchases', data.purchase.id, 'schedule']"
+            >Consultar compra y cronograma →</a
+          >
+        </article>
+      </div>
+      <article class="products">
+        <h2>Productos de la compra</h2>
+        <div class="products-table">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Unidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (product of data.purchase.products; track $index) {
+                <tr>
+                  <td>{{ product.name }}</td>
+                  <td>{{ product.quantity }}</td>
+                  <td>{{ product.unit }}</td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3">Sin detalle de productos disponible.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  } @else {
+    <p role="alert">{{ result.error }}</p>
+    <a routerLink="/clients">Volver a clientes</a>
+  }
+} @else {
+  <div class="loading-state" role="status">Cargando cuota…</div>
+}

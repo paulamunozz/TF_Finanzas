@@ -1,0 +1,52 @@
+:host {
+  display: block;
+  font-family: var(--ds-font-family);
+}
+.perfil-contenedor {
+  max-width: 48rem;
+  margin: auto;
+}
+.tarjeta-perfil {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  padding: 2rem;
+}
+.fila-dato {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--ds-border);
+}
+.etiqueta {
+  color: var(--ds-muted);
+}
+.valor {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.acciones-perfil {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+button {
+  border: 1px solid var(--ds-border);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+}
+.boton-editar {
+  background: var(--ds-primary);
+  color: white;
+}
+@media (max-width: 480px) {
+  .tarjeta-perfil {
+    padding: 1rem;
+  }
+  .fila-dato {
+    grid-template-columns: 1fr;
+  }
+}

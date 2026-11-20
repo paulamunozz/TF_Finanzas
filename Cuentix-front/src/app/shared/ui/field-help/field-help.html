@@ -1,0 +1,26 @@
+<button
+  #trigger
+  type="button"
+  [attr.aria-label]="'Ayuda para ' + field()"
+  [attr.aria-describedby]="tooltipId"
+  [attr.popovertarget]="tooltipId"
+  (pointerenter)="enter($event)"
+  (pointerleave)="leave($event)"
+  (focus)="focus()"
+  (blur)="hide()"
+  (click)="toggle($event)"
+>
+  <span aria-hidden="true">?</span>
+</button>
+<span
+  #tooltip
+  [id]="tooltipId"
+  popover="auto"
+  role="tooltip"
+  class="field-tooltip"
+  (pointerenter)="cancelClose()"
+  (pointerleave)="leave($event)"
+  (toggle)="syncPopover()"
+>
+  <span class="field-tooltip-content">{{ message() }}</span>
+</span>

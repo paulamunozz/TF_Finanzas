@@ -1,0 +1,86 @@
+<section class="dashboard">
+  <app-page-header title="Cartera de créditos" description="Consulta los saldos y vencimientos de tus clientes.">
+    <a mat-flat-button routerLink="/purchases">Registrar crédito</a>
+  </app-page-header>
+  @if (error()) {
+    <p role="alert">{{ error() }} <button mat-button (click)="load()">Reintentar</button></p>
+  } @else if (data(); as state) {
+    @if (currencies().length > 1) {
+      <div class="help-field currency-selector">
+        <span class="field-label">
+          <label for="dashboard-currency">Moneda de la cartera</label>
+          <app-field-help
+            field="Moneda de la cartera"
+            message="Selecciona la moneda en la que quieres consultar los saldos, créditos activos y próximos vencimientos."
+          />
+        </span>
+        <select id="dashboard-currency" #selection [value]="currency()" (change)="currency.set(selection.value)">
+          @for (code of currencies(); track code) { <option [value]="code">{{ code }}</option> }
+        </select>
+      </div>
+    }
+    <div class="metrics">
+      <article class="principal"><p>Cuentas por cobrar</p><strong>{{ pending() | currency:currency() }}</strong><small>Incluye intereses y mora al día</small></article>
+      <article><p>Deuda vencida</p><strong>{{ pastDue() | currency:currency() }}</strong><small>{{ overdue().length }} cuotas vencidas</small></article>
+      <article><p>Créditos activos</p><strong>{{ active() }}</strong><small>Con saldo pendiente en {{ currency() }}</small></article>
+    </div>
+    <div class="overview">
+      <article class="card">
+        <header>
+          <div>
+            <h2>Estado de cobranza</h2>
+            <p>Distribución de {{ items().length }} cuotas registradas</p>
+          </div>
+          <a routerLink="/clients">Consultar cuentas →</a>
+        </header>
+        <div class="distribution">
+          @for (status of statuses(); track status.label) {
+            <span
+              [style.flex-grow]="status.count"
+              [style.background]="status.color"
+              [attr.title]="status.label + ': ' + status.count"
+            ></span>
+          }
+        </div>
+        <div class="status-grid">
+          @for (status of statuses(); track status.label) {
+            <div>
+              <span class="status-label"
+                ><i [style.background]="status.color"></i>{{ status.label }}</span
+              ><strong>{{ status.count }}</strong
+              ><small
+                >{{
+                  items().length ? ((status.count / items().length) * 100).toFixed(0) : 0
+                }}% del total</small
+              >
+            </div>
+          }
+        </div>
+      </article>
+      <article class="card">
+        <header>
+          <div>
+            <h2>Próximos vencimientos</h2>
+            <p>Cuotas pendientes ordenadas por fecha</p>
+          </div>
+        </header>
+        @for (item of upcoming(); track item.id) {
+          <a class="due-row" [routerLink]="['/installments', item.id]"
+            ><span class="avatar">{{ item.clientName.slice(0, 2).toUpperCase() }}</span
+            ><span
+              ><b>{{ item.clientName }}</b
+              ><small>{{ item.dueDate | date: 'dd/MM/yyyy' }}</small></span
+            ><strong>{{
+              item.installmentAmount + item.lateAmount | currency: currency()
+            }}</strong
+            ><span aria-hidden="true">→</span></a
+          >
+        } @empty {
+          <p class="empty">No hay próximos vencimientos.</p>
+        }
+      </article>
+    </div>
+  } @else {
+    <div class="loading-state" role="status">Cargando información financiera…</div>
+  }
+</section>

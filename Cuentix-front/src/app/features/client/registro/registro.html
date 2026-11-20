@@ -1,0 +1,143 @@
+<div class="registro-page">
+  <main class="registro-content">
+    @if (registrado) {
+      <h1>¡Cuenta creada!</h1>
+
+      <div class="alert-success" role="status">Tu cuenta fue registrada correctamente.</div>
+
+      <a routerLink="/login" class="btn-registro"> IR A INICIAR SESIÓN </a>
+    } @else {
+      <h1>Regístrate</h1>
+
+      @if (error) {
+        <div class="alert-error" role="alert">
+          {{ error }}
+        </div>
+      }
+
+      <form class="registro-form" (ngSubmit)="registrarCliente()" novalidate>
+        <div class="form-group">
+          <span class="field-label">
+            <label for="dni">DNI</label>
+            <app-field-help
+              field="DNI"
+              message="Ingresa los 8 dígitos de tu DNI, sin espacios ni guiones. Por ejemplo, 12345678."
+            />
+          </span>
+          <input
+            id="dni"
+            type="text"
+            name="dni"
+            [(ngModel)]="dni"
+            maxlength="8"
+            inputmode="numeric"
+            placeholder="Ingrese su DNI"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <span class="field-label">
+            <label for="nombre">Nombre</label>
+            <app-field-help
+              field="Nombre"
+              message="Escribe tus nombres como aparecen en tu DNI. Puedes usar letras, espacios, apóstrofos y guiones."
+            />
+          </span>
+          <input
+            id="nombre"
+            type="text"
+            name="nombre"
+            [(ngModel)]="nombre"
+            placeholder="Ingrese su nombre"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <span class="field-label">
+            <label for="apellido">Apellido</label>
+            <app-field-help
+              field="Apellido"
+              message="Escribe tus apellidos completos como aparecen en tu DNI. Puedes usar letras, espacios, apóstrofos y guiones."
+            />
+          </span>
+          <input
+            id="apellido"
+            type="text"
+            name="apellido"
+            [(ngModel)]="apellido"
+            placeholder="Ingrese su apellido"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <span class="field-label">
+            <label for="contrasena">Contraseña</label>
+            <app-field-help
+              field="Contraseña"
+              message="Crea una contraseña de al menos 8 caracteres para acceder a tu cuenta."
+            />
+          </span>
+          <input
+            id="contrasena"
+            type="password"
+            name="contrasena"
+            [(ngModel)]="contrasena"
+            autocomplete="new-password"
+            placeholder="Mínimo 8 caracteres"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <span class="field-label">
+            <label for="confirmar">Confirmar contraseña</label>
+            <app-field-help
+              field="Confirmar contraseña"
+              message="Repite exactamente la contraseña que acabas de crear, incluidas las mayúsculas y minúsculas."
+            />
+          </span>
+          <input
+            id="confirmar"
+            type="password"
+            name="confirmar"
+            [(ngModel)]="confirmarContrasena"
+            autocomplete="new-password"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <span class="field-label">
+            <label for="telefono">Teléfono</label>
+            <app-field-help
+              field="Teléfono"
+              message="Ingresa un número de celular de 9 dígitos que empiece por 9. Por ejemplo, 987654321."
+            />
+          </span>
+          <input
+            id="telefono"
+            type="tel"
+            name="telefono"
+            [(ngModel)]="telefono"
+            maxlength="9"
+            inputmode="numeric"
+            placeholder="Ingrese su celular"
+            required
+          />
+        </div>
+
+        <button type="submit" class="btn-registro" [disabled]="cargando">
+          {{ cargando ? 'REGISTRANDO...' : 'CREAR CUENTA' }}
+        </button>
+      </form>
+
+      <p class="login-text">
+        ¿Ya tienes una cuenta?
+        <a routerLink="/login">Inicia sesión</a>
+      </p>
+    }
+  </main>
+</div>

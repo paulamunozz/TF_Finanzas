@@ -1,0 +1,45 @@
+<section aria-labelledby="login-title">
+  <h2 id="login-title">Iniciar sesión</h2>
+  @if (error) {
+    <p class="alert-error" role="alert">{{ error }}</p>
+  }
+  <form class="login-form" (ngSubmit)="iniciarSesion()" novalidate>
+    <span class="field-label">
+      <label for="codigo">Usuario, DNI o RUC</label>
+      <app-field-help
+        field="Usuario, DNI o RUC"
+        message="Escribe el usuario con el que te registraste. Si usas tu DNI, ingresa 8 dígitos. Si usas tu RUC, ingresa 11."
+      />
+    </span>
+    <input
+      id="codigo"
+      name="codigo"
+      type="text"
+      [(ngModel)]="codigo"
+      autocomplete="username"
+      required
+    />
+    <span class="field-label">
+      <label for="contrasena">Contraseña</label>
+      <app-field-help
+        field="Contraseña"
+        message="Escribe la contraseña de tu cuenta tal como la creaste. Distingue entre mayúsculas y minúsculas."
+      />
+    </span>
+    <input
+      id="contrasena"
+      name="contrasena"
+      type="password"
+      [(ngModel)]="contrasena"
+      autocomplete="current-password"
+      required
+    />
+    <button type="submit" class="btn-login" [disabled]="cargando">
+      {{ cargando ? 'Validando…' : 'Ingresar' }}
+    </button>
+  </form>
+  <p>
+    ¿No tienes una cuenta?
+    <button type="button" class="register-link" (click)="mostrarRegistro()">Regístrate</button>
+  </p>
+</section>

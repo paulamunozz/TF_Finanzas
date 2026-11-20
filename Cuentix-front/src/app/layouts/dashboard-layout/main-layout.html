@@ -1,0 +1,63 @@
+<div class="app-shell" [class.collapsed]="collapsed()">
+  <aside class="sidebar" [class.open]="menuOpen()">
+    <a class="brand" routerLink="/dashboard" (click)="closeMenu()"
+      ><span class="brand-mark">C</span><span>Cuentix</span></a
+    >
+    <div class="business">
+      <span class="business-avatar">{{ (business.name() || 'C').slice(0, 1) }}</span
+      ><span
+        ><b>{{ business.name() || 'Negocio' }}</b
+        ><small>Negocio activo</small></span
+      >
+    </div>
+    <button
+      class="collapse-button"
+      type="button"
+      (click)="collapsed.set(!collapsed())"
+      [attr.aria-expanded]="!collapsed()"
+    >
+      {{ collapsed() ? 'Expandir menú' : 'Contraer menú' }}
+    </button>
+    <nav aria-label="Navegación principal">
+      <p>Principal</p>
+      <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()"
+        ><span>⌂</span>Cartera</a
+      >
+      <a routerLink="/clients" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()"
+        ><span>◎</span>Clientes</a
+      >
+      <a routerLink="/purchases/history" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()"
+        ><span>▣</span>Ventas a crédito</a
+      >
+      <a routerLink="/products" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()"
+        ><span>◇</span>Catálogo</a
+      >
+      <a routerLink="/cortes" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()"
+        ><span aria-hidden="true">🗓️</span>Listados al corte</a
+      >
+    </nav>
+    <button type="button" class="collapse-button" (click)="logout()">Cerrar sesión</button>
+    <div class="sidebar-foot">
+      <span class="user-avatar" aria-hidden="true">C</span
+      ><span><b>Mi cuenta</b><small>Usuario autenticado</small></span>
+    </div>
+  </aside>
+  @if (menuOpen()) {
+    <button class="backdrop" type="button" aria-label="Cerrar menú" (click)="closeMenu()"></button>
+  }
+  <div class="workspace">
+    <header class="topbar">
+      <button class="menu-button" type="button" aria-label="Abrir menú" (click)="toggleMenu()">
+        ☰
+      </button>
+      <div><b>Gestión de créditos</b></div>
+      <span class="context-business">{{ business.name() || 'Negocio' }}</span>
+    </header>
+    <main class="content">
+      @if (business.error()) {
+        <p role="alert">{{ business.error() }}</p>
+      }
+      <router-outlet />
+    </main>
+  </div>
+</div>

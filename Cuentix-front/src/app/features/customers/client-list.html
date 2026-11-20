@@ -1,0 +1,122 @@
+<section class="page">
+  <app-page-header title="Mis clientes" description="Condiciones crediticias e historial de tus clientes."><a
+      mat-flat-button class="primary-action" routerLink="/clients/new">＋ Nuevo cliente</a></app-page-header>
+  <div class="table-toolbar">
+    <div class="help-field">
+      <span class="field-label">
+        <label for="clients-include-inactive">Mostrar inactivas</label>
+        <app-field-help
+          field="Mostrar inactivas"
+          message="Marca esta casilla para incluir las cuentas de clientes desactivadas en el listado."
+        />
+      </span>
+      <input id="clients-include-inactive" type="checkbox" [(ngModel)]="showInactive" (change)="page.set(0); retry()">
+    </div>
+    <div class="help-field search-control">
+      <span class="field-label">
+        <label for="clients-search">Buscar cliente</label>
+        <app-field-help
+          field="Buscar cliente"
+          message="Escribe una parte del nombre o del DNI del cliente para filtrar el listado."
+        />
+      </span>
+      <input id="clients-search" [(ngModel)]="query" (ngModelChange)="page.set(0)"
+        placeholder="Nombre o DNI" />
+    </div>
+    <div class="help-field">
+      <span class="field-label">
+        <label for="clients-currency">Moneda</label>
+        <app-field-help
+          field="Moneda"
+          message="Filtra las cuentas por soles (PEN) o dólares (USD). Elige Todas para ver ambas monedas."
+        />
+      </span>
+      <select id="clients-currency" [(ngModel)]="currency" (ngModelChange)="page.set(0)">
+        <option value="">Todas</option>
+        <option>PEN</option>
+        <option>USD</option>
+      </select>
+    </div>
+    <div class="help-field">
+      <span class="field-label">
+        <label for="clients-order">Ordenar por</label>
+        <app-field-help
+          field="Ordenar por"
+          message="Elige ordenar por nombre de A a Z o mostrar primero las cuentas con mayor línea de crédito."
+        />
+      </span>
+      <select id="clients-order" [(ngModel)]="order" (ngModelChange)="page.set(0)">
+        <option value="name">Nombre A–Z</option>
+        <option value="credit">Mayor línea de crédito</option>
+      </select>
+    </div>
+  </div>
+  @if (state$ | async; as clients) {
+  @let results = filtered(clients);
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>DNI</th>
+          <th>Tasa compensatoria</th>
+          <th class="numeric">Disponible</th>
+          <th>Plazo</th>
+          <th>Corte / Pago</th>
+          <th><span class="sr-only">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (client of results.slice(page() * 8, page() * 8 + 8); track client.id) {
+        <tr>
+          <td>
+            <div class="identity">
+              <span class="avatar">{{ initials(client.name) }}</span><span><b>{{ client.name }}</b><small>Cuenta {{
+                  client.id }} · {{ client.active === false ? 'Inactiva' : 'Activa' }}</small></span>
+            </div>
+          </td>
+          <td>{{ client.dni }}</td>
+          <td>
+            <b>{{ client.compensatoryRate }}% ·
+              {{ client.rateType === 'TN' ? 'Nominal' : 'Efectiva' }}</b><small>{{ client.ratePeriod }}</small>
+          </td>
+          <td class="numeric">
+            <b>{{ (client.creditLine - (client.usedCredit ?? 0)) | currency: client.currency : 'symbol' : '1.2-2' }}</b><small>Línea {{ client.creditLine | currency:client.currency }}</small>
+          </td>
+          <td>{{ client.maxMonths }} meses</td>
+          <td>{{ client.cutOffDay }} / {{ client.paymentDay }}</td>
+          <td>
+            <div class="table-actions">
+              <a mat-button [routerLink]="['/clients', client.id, 'payments']">Cronograma</a><button mat-icon-button
+                [matMenuTriggerFor]="actions" [attr.aria-label]="'Acciones de ' + client.name">
+                ⋯</button><mat-menu #actions="matMenu"><a mat-menu-item
+                  [routerLink]="['/clients', client.id, 'edit']">Editar cliente</a>@if(client.active === false){<button mat-menu-item (click)="activate(client.id)">Reactivar cuenta</button>}@else{<button mat-menu-item
+                  (click)="remove(client)">
+                  Desactivar cuenta
+                </button>}</mat-menu>
+            </div>
+          </td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="7" class="empty">No hay clientes que coincidan con tu búsqueda.</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    <footer class="table-footer">
+      <span>{{ results.length }} clientes</span>
+      <div>
+        <button mat-button [disabled]="page() === 0" (click)="page.set(page() - 1)">
+          Anterior</button><span>Página {{ page() + 1 }}</span><button mat-button
+          [disabled]="(page() + 1) * 8 >= results.length" (click)="page.set(page() + 1)">
+          Siguiente
+        </button>
+      </div>
+    </footer>
+  </div>
+  } @else {
+    @if(error()){<p role="alert">No se pudieron cargar las cuentas. <button mat-button (click)="retry()">Reintentar</button></p>}
+    @else{<div class="loading-state" role="status">Cargando clientes…</div>}
+  }
+</section>

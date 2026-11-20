@@ -1,0 +1,177 @@
+<section class="products">
+  @if (loading()) {
+    <p role="status">Cargando productos…</p>
+  }
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+  }
+  @if (pendingDelete(); as id) {
+    <div class="delete-confirm" role="alert">
+      <span>¿Desactivar este producto para nuevas ventas?</span
+      ><button mat-button (click)="pendingDelete.set(null)">Cancelar</button
+      ><button mat-button (click)="remove(id); pendingDelete.set(null)">Desactivar</button>
+    </div>
+  }
+  <app-page-header
+    title="Productos y servicios"
+    description="Administra el catálogo comercial de tu negocio."
+    ><button mat-flat-button type="button" (click)="newProduct()">
+      Nuevo producto
+    </button></app-page-header
+  >
+  @if (showForm()) {
+    <form #productForm="ngForm" (ngSubmit)="productForm.valid && add()">
+      <div class="help-field">
+        <span class="field-label">
+          <label for="product-name">Nombre</label>
+          <app-field-help
+            field="Nombre"
+            message="Escribe cómo aparecerá el producto o servicio en el catálogo. Por ejemplo, Arroz integral de 1 kg."
+          />
+        </span>
+        <input id="product-name" name="name" [(ngModel)]="draft.name" required />
+      </div>
+      <div class="help-field">
+        <span class="field-label">
+          <label for="product-unit">Unidad</label>
+          <app-field-help
+            field="Unidad"
+            message="Indica cómo se vende el producto o servicio. Por ejemplo, unidad, kilogramo o caja."
+          />
+        </span>
+        <input id="product-unit" name="unit" [(ngModel)]="draft.unit" required />
+      </div>
+      <div class="help-field">
+        <span class="field-label">
+          <label for="product-cash-price">Precio contado</label>
+          <app-field-help
+            field="Precio contado"
+            message="Escribe cuánto cuesta una unidad al contado. El importe mínimo es 0,01."
+          />
+        </span>
+        <input id="product-cash-price"
+          name="cash"
+          [(ngModel)]="draft.cashPrice"
+          type="number"
+          min="0.01"
+          required />
+      </div>
+      <div class="help-field">
+        <span class="field-label">
+          <label for="product-credit-price">Precio a crédito</label>
+          <app-field-help
+            field="Precio a crédito"
+            message="Escribe cuánto cuesta una unidad a crédito. Debe ser mayor o igual al precio de contado."
+          />
+        </span>
+        <input id="product-credit-price"
+          name="credit"
+          [(ngModel)]="draft.creditPrice"
+          type="number"
+          min="0.01"
+          required />
+      </div>
+      <div class="help-field">
+        <span class="field-label">
+          <label for="product-description">Descripción</label>
+          <app-field-help
+            field="Descripción"
+            message="Añade detalles que distingan el producto o servicio, como su presentación o tamaño. Es opcional."
+          />
+        </span>
+        <input id="product-description" name="description" [(ngModel)]="draft.description" />
+      </div>
+      <div class="help-field">
+        <span class="field-label">
+          <label for="product-brand">Marca</label>
+          <app-field-help
+            field="Marca"
+            message="Escribe la marca comercial del producto, si corresponde. Puedes dejar el campo vacío."
+          />
+        </span>
+        <input id="product-brand" name="brand" [(ngModel)]="draft.brand" />
+      </div>
+      <div class="help-field">
+        <span class="field-label">
+          <label for="product-supplier">Proveedor</label>
+          <app-field-help
+            field="Proveedor"
+            message="Escribe el nombre de quien suministra el producto o servicio. Es opcional."
+          />
+        </span>
+        <input id="product-supplier" name="supplier" [(ngModel)]="draft.supplier" />
+      </div>
+      <div class="help-field">
+        <span class="field-label">
+          <label for="product-image">Enlace de imagen</label>
+          <app-field-help
+            field="Enlace de imagen"
+            message="Pega la dirección web completa de una imagen del producto. Por ejemplo, https://ejemplo.com/producto.jpg. Es opcional."
+          />
+        </span>
+        <input id="product-image" name="image" type="url" [(ngModel)]="draft.imageUrl" />
+      </div>
+      <div class="help-field">
+        <input id="product-installments" type="checkbox" name="installments" [(ngModel)]="draft.installmentsAllowed" />
+        <span class="field-label">
+          <label for="product-installments">Admite cuotas</label>
+          <app-field-help
+            field="Admite cuotas"
+            message="Marca esta casilla si el producto puede venderse en cuotas. Desmárcala si solo admite pago único."
+          />
+        </span>
+      </div>
+      <button mat-button type="button" (click)="showForm.set(false)">Cancelar</button>
+      <button mat-flat-button [disabled]="saving() || productForm.invalid || draft.creditPrice < draft.cashPrice">Guardar producto</button>
+      @if (draft.creditPrice < draft.cashPrice) { <p role="alert">El precio a crédito debe cubrir el precio contado.</p> }
+    </form>
+  }
+  <div class="toolbar">
+    <div class="help-field">
+      <span class="field-label">
+        <label for="products-include-inactive">Mostrar inactivos</label>
+        <app-field-help
+          field="Mostrar inactivos"
+          message="Marca esta casilla para incluir los productos y servicios desactivados en el catálogo."
+        />
+      </span>
+      <input id="products-include-inactive" type="checkbox" [(ngModel)]="showInactive" (change)="includeInactive.set(showInactive); loadInactive()">
+    </div>
+    <div class="help-field">
+      <span class="field-label">
+        <label for="products-search"><span>Buscar</span
+      ></label>
+        <app-field-help
+          field="Buscar"
+          message="Escribe una parte del nombre del producto o servicio para encontrarlo en el catálogo."
+        />
+      </span>
+      <input id="products-search"
+        [ngModel]="query()"
+        (ngModelChange)="query.set($event)"
+        placeholder="Nombre del producto" />
+    </div><span>{{ filtered().length }} productos</span>
+  </div>
+  @if (!loading() && !error()) {
+    <div class="table" tabindex="0" aria-label="Catálogo de productos y servicios">
+      <table class="data-table"><thead><tr>
+        <th>Producto o servicio</th><th>Modalidad</th><th class="numeric">Contado</th>
+        <th class="numeric">A crédito</th><th>Estado</th><th>Acciones</th>
+      </tr></thead><tbody>
+      @for (product of filtered(); track product.id) {
+        <tr><td><div class="product-name">
+          @if(product.imageUrl){<img [src]="product.imageUrl" alt="" width="40" height="40" loading="lazy" referrerpolicy="no-referrer">}
+          <span><b>{{product.name}}</b><small>{{product.brand || product.description || product.unit}}</small></span></div></td>
+          <td>{{product.installmentsAllowed ? 'Pago único o cuotas' : 'Pago único'}}</td>
+          <td class="numeric">{{product.cashPrice | number:'1.2-2'}}</td><td class="numeric">{{product.creditPrice | number:'1.2-2'}}</td>
+          <td>{{product.active === false ? 'Inactivo' : 'Activo'}}</td>
+          <td><button mat-button [matMenuTriggerFor]="menu" [attr.aria-label]="'Acciones de '+product.name">Acciones</button>
+          <mat-menu #menu="matMenu">@if(product.active === false){
+            <button mat-menu-item (click)="activate(product.id)">Reactivar</button>
+          } @else {<button mat-menu-item (click)="edit(product)">Editar</button>
+            <button mat-menu-item (click)="requestRemove(product.id)">Desactivar</button>}</mat-menu></td></tr>
+      } @empty {<tr><td colspan="6" class="empty">{{query() ? 'No hay coincidencias para esta búsqueda.' : 'Todavía no hay productos en el catálogo.'}}</td></tr>}
+      </tbody></table>
+    </div>
+  }
+</section>

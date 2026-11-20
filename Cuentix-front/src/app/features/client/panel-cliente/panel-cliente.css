@@ -1,0 +1,9 @@
+:host {display:block;}
+.panel-cliente {min-height:100vh;background:var(--ds-background);}
+.barra-superior {display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.6rem clamp(.6rem,4vw,3rem);background:var(--ds-surface);border-bottom:1px solid var(--ds-border);}
+.marca,.menu {display:flex;align-items:center;gap:.4rem;}
+.marca {font-size:1.15rem;font-weight:700;}
+.logo {display:grid;place-items:center;background:var(--ds-primary);color:white;border-radius:.4rem;width:2rem;height:2rem;}
+.menu a {padding:.7rem .6rem;text-decoration:none;font-size:.875rem;color:var(--ds-muted-foreground);border-radius:.4rem;}
+.menu a.activo,.menu a:hover {background:var(--ds-primary-subtle);color:var(--ds-primary-hover);}
+@media(max-width:400px){.barra-superior{gap:.25rem}.menu{gap:0}.menu a{padding:.7rem .4rem;}}

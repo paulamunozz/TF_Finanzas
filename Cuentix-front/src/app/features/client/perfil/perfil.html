@@ -1,0 +1,39 @@
+<div class="perfil-contenedor">
+  <h1>Mi perfil</h1>
+  <div class="tarjeta-perfil">
+    <div class="datos-cliente">
+      <div class="fila-dato">
+        <span class="etiqueta">DNI</span>
+        <span class="valor">
+          {{ dni || 'No disponible' }}
+        </span>
+      </div>
+
+      <div class="fila-dato">
+        <span class="etiqueta">Nombre</span>
+        <span class="valor">
+          {{ nombreCompleto || 'No disponible' }}
+        </span>
+      </div>
+
+      <div class="fila-dato">
+        <span class="etiqueta">Teléfono</span>
+        <span class="valor">
+          {{ telefono || 'No disponible' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="acciones-perfil">
+      <button type="button" class="boton-editar" (click)="editarDatos()">Editar datos</button>
+
+      <button type="button" class="boton-cerrar" (click)="cerrarSesion()">Cerrar sesión</button>
+
+      @if (errorCierre) {
+        <p role="alert" class="mensaje-error">
+          {{ errorCierre }}
+        </p>
+      }
+    </div>
+  </div>
+</div>

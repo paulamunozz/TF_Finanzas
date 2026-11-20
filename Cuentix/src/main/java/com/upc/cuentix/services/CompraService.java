@@ -1,220 +1,206 @@
 package com.upc.cuentix.services;
 
 import com.upc.cuentix.dto.CompraDTO;
-import com.upc.cuentix.entities.*;
+import com.upc.cuentix.entities.Compra;
+import com.upc.cuentix.entities.CuentaCredito;
+import com.upc.cuentix.entities.Cuota;
+import com.upc.cuentix.entities.Item;
+import com.upc.cuentix.entities.Tasa;
 import com.upc.cuentix.instances.ICompraService;
 import com.upc.cuentix.repositories.*;
-import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
-public class CompraService implements ICompraService{
-    @Autowired private CompraRepository compraRepository;
-    @Autowired private CuentaCreditoRepository cuentaCreditoRepository;
-    @Autowired private TasaRepository tasaRepository;
-    @Autowired private ItemRepository itemRepository;
-    @Autowired private CuotaRepository cuotaRepository;
-    @Autowired private CuotaService cuotaService;
-    @Autowired private ModelMapper modelMapper;
+@org.springframework.transaction.annotation.Transactional
+public class CompraService implements ICompraService {
+  @Autowired private com.upc.cuentix.config.ResourceAccess access;
+  @Autowired private CompraRepository compraRepository;
+  @Autowired private CuentaCreditoRepository cuentaCreditoRepository;
+  @Autowired private TasaRepository tasaRepository;
+  @Autowired private ItemRepository itemRepository;
+  @Autowired private CuotaRepository cuotaRepository;
+  @Autowired private ModelMapper modelMapper;
+  @Autowired private BusinessApplicationService businessService;
 
-    @Override
-    public CompraDTO preRegistrar(CompraDTO compraDTO) {
-        if (!cuentaCreditoRepository.existsById(compraDTO.getCcId())){
-            throw new RuntimeException("No existe");
-        }
+  @Override
+  public CompraDTO preRegistrar(CompraDTO compraDTO) {
+    if (compraDTO.getCcId() == null || compraDTO.getContadoCredito() == null)
+      throw new IllegalArgumentException("Indique cuenta y modalidad");
+    access.account(compraDTO.getCcId());
 
-        Compra compra = modelMapper.map(compraDTO, Compra.class);
-        compraRepository.save(compra);
-
-        return modelMapper.map(compra, CompraDTO.class);
+    // Verificar que se envió el ID de la cuenta.
+    if (compraDTO.getCcId() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Debe indicar una cuenta de crédito");
     }
 
-    @Transactional
-    @Override
-    public CompraDTO registrar(CompraDTO compraDTO) {
-        Compra compra = compraRepository.findById(compraDTO.getId()).get();
-        compra.setFecha(LocalDate.now());
-        compra.setContadoCredito(compraDTO.getContadoCredito());
-        compra.setAmortizacion(sumaTotalInicial(compra.getId(), compraDTO.getContadoCredito()));
-        compra.setMoras(0.0);
-        if (!compra.getContadoCredito()){
-            compra.setTasa(0.0);
-            compra.setTasaMora(0.0);
-            compra.setTotalGracia(compra.getAmortizacion());
-            compra.setIntereses(0.0);
-            compra.setTotalFinal(compra.getAmortizacion());
-            compra.setNumMeses(0);
-            compra.setFinalCuotas(false);
-        }
-        else {
-            compra.setTasa(
-                    conversorTEM(
-                            tasaRepository.getTasaByCuentaCredito_IdAndNomrmalMoratoria(
-                                    compra.getCuentaCredito().getId(),
-                                    false), 30));
-            compra.setTasaMora(
-                    conversorTEM(
-                            tasaRepository.getTasaByCuentaCredito_IdAndNomrmalMoratoria(
-                                    compra.getCuentaCredito().getId(),
-                                    true), 1));
-            compra.setTotalGracia(totalGracia(compra));
-            compra.setNumMeses(compraDTO.getNumMeses());
-            compra.setFinalCuotas(compraDTO.getFinalCuotas());
+    // Buscar la cuenta de crédito en PostgreSQL.
+    CuentaCredito cuenta =
+        cuentaCreditoRepository
+            .findById(compraDTO.getCcId())
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "La cuenta de crédito no existe"));
 
-
-            LocalDate fechaPago = calcularFechaPago(compra);
-            if (!compra.getFinalCuotas()){
-                Cuota cuota = new Cuota();
-                cuota.setCompra(compra);
-                cuota.setNum(1);
-                cuota.setFechaVencimiento(fechaPago);
-                cuota.setAmortizacion(compra.getAmortizacion());
-                cuota.setTotal(compra.getTotalGracia());
-                cuota.setIntereses(cuota.getTotal() - cuota.getAmortizacion());
-                cuota.setMoras(0.0);
-                cuota.setCancelado(false);
-                cuotaRepository.save(cuota);
-
-                compra.setTotalFinal(cuota.getTotal());
-            }
-            else {
-                double A = calculoCuota(compra);
-                double total = 0.0;
-                for (int i = 1; i <= compra.getNumMeses(); i++) {
-                    Cuota cuota = new Cuota();
-                    cuota.setCompra(compra);
-                    cuota.setNum(i);
-                    cuota.setFechaVencimiento(fechaPago.plusMonths(i));   // 26/10, 26/11, 26/12
-                    cuota.setIntereses(A * (1 - Math.pow(1 + compra.getTasa(), -(compra.getNumMeses() - i + 1))));
-                    cuota.setAmortizacion(A - cuota.getIntereses());
-                    cuota.setTotal(A);
-                    cuota.setMoras(0.0);
-                    cuota.setCancelado(false);
-                    cuotaRepository.save(cuota);
-                    total += A;
-                }
-                compra.setTotalFinal(total);
-            }
-            compra.setIntereses(compra.getTotalFinal() - compra.getAmortizacion());
-
-            if (compra.getCuentaCredito().getDeuda() + compra.getTotalFinal() > compra.getCuentaCredito().getLimite()
-                    || compra.getNumMeses() > compra.getCuentaCredito().getMaxMeses()) {
-                throw new RuntimeException("La compra excede el límite de crédito o el máximo de meses");
-            }
-            CuentaCredito cc = cuentaCreditoRepository.findById(compra.getCuentaCredito().getId()).orElse(null);
-            cc.setDeuda(cc.getDeuda() + compra.getTotalFinal());
-            cuentaCreditoRepository.save(cc);
-        }
-        compraRepository.save(compra);
-        return modelMapper.map(compra, CompraDTO.class);
+    if (!Boolean.TRUE.equals(cuenta.getEstado())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "La cuenta de crédito no está activa");
     }
 
-    @Override
-    public void eliminar(Integer id) {
-        List<Cuota> cuotas = cuotaRepository.findByCompra_Id(id);
-        List<Item> items = itemRepository.findByCompra_Id(id);
-        cuotaRepository.deleteAll(cuotas);
-        itemRepository.deleteAll(items);
-        compraRepository.deleteById(id);
+    // Validar el plazo de la compra a crédito.
+    if (Boolean.TRUE.equals(compraDTO.getContadoCredito())) {
+      if (compraDTO.getNumMeses() == null
+          || compraDTO.getNumMeses() < 1
+          || compraDTO.getNumMeses() > cuenta.getMaxMeses()) {
+
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "El plazo de la compra no es válido");
+      }
     }
 
-    @Override
-    public List<CompraDTO> comprasPorNegocio(Integer negocioId) {
-        return compraRepository.findAllByCuentaCredito_Negocio_Id(negocioId)
-                .stream().map(compra -> modelMapper.map(compra, CompraDTO.class))
-                .collect(Collectors.toList());
+    // Convertir el DTO a entidad.
+    Compra compra = modelMapper.map(compraDTO, Compra.class);
+
+    // Asociar explícitamente la cuenta de crédito.
+    compra.setId(null);
+    compra.setFecha(null);
+    compra.setTotalFinal(null);
+    compra.setCuentaCredito(cuenta);
+
+    // Guardar la compra.
+    Compra compraGuardada = compraRepository.save(compra);
+
+    // Preparar respuesta.
+    CompraDTO respuesta = modelMapper.map(compraGuardada, CompraDTO.class);
+
+    respuesta.setCcId(cuenta.getId());
+
+    return respuesta;
+  }
+
+  @Override
+  public CompraDTO registrar(CompraDTO compraDTO) {
+    access.purchase(compraDTO.getId());
+    Compra compra = compraRepository.findById(compraDTO.getId()).orElseThrow();
+    if (Boolean.TRUE.equals(compra.getContadoCredito()))
+      return businessService.finalizeDraft(compra.getId());
+    if (compra.getFecha() != null) throw new IllegalArgumentException("Compra ya finalizada");
+    compra.setFecha(LocalDate.now());
+    compra.setTotalInicial(sumaTotalInicial(compra.getId(), compra.getContadoCredito()));
+    compra.setMoras(0.0);
+
+    compra.setTasa(0.0);
+    compra.setTasaMora(0.0);
+    compra.setTotalGracia(0.0);
+    compra.setIntereses(0.0);
+    compra.setTotalFinal(compra.getTotalInicial());
+    compra.setNumMeses(0);
+    compra.setFinalCuotas(false);
+
+    compraRepository.save(compra);
+    return modelMapper.map(compra, CompraDTO.class);
+  }
+
+  @Override
+  public void eliminar(Integer id) {
+    access.purchase(id);
+    if (compraRepository.findById(id).orElseThrow().getFecha() != null)
+      throw new IllegalArgumentException("No puede eliminar una compra finalizada");
+    List<Cuota> cuotas = cuotaRepository.findByCompra_Id(id);
+    List<Item> items = itemRepository.findByCompra_Id(id);
+    cuotaRepository.deleteAll(cuotas);
+    itemRepository.deleteAll(items);
+    compraRepository.deleteById(id);
+  }
+
+  @Override
+  public List<CompraDTO> comprasPorNegocio(Integer negocioId) {
+    access.business(negocioId);
+    return compraRepository.findAllByCuentaCredito_Negocio_Id(negocioId).stream()
+        .map(compra -> modelMapper.map(compra, CompraDTO.class))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<CompraDTO> comprasPorCliente(Integer clienteId) {
+    access.client(clienteId);
+    return compraRepository.findAllByCuentaCredito_Cliente_Id(clienteId).stream()
+        .filter(compra -> access.ownsBusiness(compra.getCuentaCredito().getNegocio().getId()))
+        .map(compra -> modelMapper.map(compra, CompraDTO.class))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<CompraDTO> comprasPorCuentaCredito(Integer cuentaCreditoId) {
+    access.account(cuentaCreditoId);
+    return compraRepository.findAllByCuentaCredito_Id(cuentaCreditoId).stream()
+        .map(compra -> modelMapper.map(compra, CompraDTO.class))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public CompraDTO buscarPorId(Integer id) {
+    access.purchase(id);
+    return compraRepository
+        .findById(id)
+        .map(compra -> modelMapper.map(compra, CompraDTO.class))
+        .orElse(null);
+  }
+
+  @Override
+  public Double conversorTNA(Tasa tasa) {
+    return FinancialMath.annual(tasa);
+  }
+
+  @Override
+  public Double sumaTotalInicial(Integer compraId, Boolean contadoCredito) {
+    Double totalInicial = 0.0;
+    List<Item> items = itemRepository.findByCompra_Id(compraId);
+    if (!contadoCredito) {
+      for (Item item : items) {
+        totalInicial += item.getProducto().getPrecioContado() * item.getCantidad();
+      }
+    } else {
+      for (Item item : items) {
+        totalInicial += item.getProducto().getPrecioLista() * item.getCantidad();
+      }
     }
+    return FinancialMath.money(totalInicial).doubleValue();
+  }
 
-    @Override
-    public List<CompraDTO> comprasPorCliente(Integer clienteId) {
-        return compraRepository.findAllByCuentaCredito_Cliente_Id(clienteId)
-                .stream().map(compra -> modelMapper.map(compra, CompraDTO.class))
-                .collect(Collectors.toList());
-    }
+  @Override
+  public Double totalGracia(Compra compra) {
+    LocalDate due =
+        FinancialMath.paymentDate(
+            compra.getFecha(),
+            compra.getCuentaCredito().getDiaCorte(),
+            compra.getCuentaCredito().getDiaPago());
+    return FinancialMath.compound(
+        compra.getTotalInicial(),
+        compra.getTasa(),
+        ChronoUnit.DAYS.between(compra.getFecha(), due));
+  }
 
-    @Override
-    public List<CompraDTO> comprasPorCuentaCredito(Integer cuentaCreditoId) {
-        return compraRepository.findAllByCuentaCredito_Id(cuentaCreditoId)
-                .stream().map(compra -> modelMapper.map(compra, CompraDTO.class))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public CompraDTO buscarPorId(Integer id) {
-        return compraRepository.findById(id)
-                .map(compra -> modelMapper.map(compra, CompraDTO.class))
-                .orElse(null);
-    }
-
-    @Override
-    public Double conversorTEM(Tasa tasa, Integer periodicidad) {
-        if (!tasa.getNominalEfectiva()) {
-            double m = (double) tasa.getPeriodicidad() / tasa.getCapitalizacion();
-            double n = (double) periodicidad / tasa.getCapitalizacion();
-            return Math.pow(1 + tasa.getPorcentaje() / m, n) - 1;
-        } else if (!Objects.equals(tasa.getPeriodicidad(), periodicidad)) {
-            double n = (double) periodicidad / tasa.getPeriodicidad();
-            return Math.pow(1 + tasa.getPorcentaje(), n) - 1;
-        }
-        return tasa.getPorcentaje();
-    }
-
-    @Override
-    public Double sumaTotalInicial(Integer compraId, Boolean contadoCredito) {
-        Double totalInicial = 0.0;
-        List<Item> items = itemRepository.findByCompra_Id(compraId);
-        if (!contadoCredito){
-            for(Item item:items){
-                totalInicial += item.getProducto().getPrecioContado() * item.getCantidad();
-            }
-        }
-        else {
-            for(Item item:items){
-                totalInicial += item.getProducto().getPrecioLista() * item.getCantidad();
-            }
-        }
-        return totalInicial;
-    }
-
-    @Override
-    public Double totalGracia(Compra compra) {
-        double n = ChronoUnit.DAYS.between(compra.getFecha(), calcularFechaPago(compra));
-        return compra.getAmortizacion() * Math.pow(1 + compra.getTasa(), n / 30);
-    }
-
-    @Override
-    public LocalDate calcularFechaPago(Compra compra) {
-        LocalDate f = compra.getFecha();
-        int diaCorte = compra.getCuentaCredito().getDiaCorte();
-        int diaPago = compra.getCuentaCredito().getDiaPago();
-
-        YearMonth mesCorte = YearMonth.from(f);
-        if (f.isAfter(diaSeguro(mesCorte, diaCorte))) mesCorte = mesCorte.plusMonths(1);
-
-        YearMonth mesPago = (diaPago > diaCorte) ? mesCorte : mesCorte.plusMonths(1);
-        return diaSeguro(mesPago, diaPago);
-    }
-
-    @Override
-    public LocalDate diaSeguro(YearMonth ym, int dia) {
-        return ym.atDay(Math.min(dia, ym.lengthOfMonth()));
-    }
-
-    @Override
-    public Double calculoCuota(Compra compra) {
-        double i = compra.getTasa();
-        double C = compra.getTotalGracia();
-        int n = compra.getNumMeses();
-        if (i == 0) return C / n;
-        return C * (i / (1 - Math.pow(1 + i, -n)));
-    }
+  @Override
+  public Double intereses(Compra compra) {
+    LocalDate start =
+        FinancialMath.paymentDate(
+            compra.getFecha(),
+            compra.getCuentaCredito().getDiaCorte(),
+            compra.getCuentaCredito().getDiaPago());
+    long days = ChronoUnit.DAYS.between(start, start.plusMonths(compra.getNumMeses()));
+    return FinancialMath.money(
+            FinancialMath.compound(compra.getTotalGracia(), compra.getTasa(), days)
+                - compra.getTotalGracia())
+        .doubleValue();
+  }
 }

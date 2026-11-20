@@ -1,0 +1,57 @@
+<h1>Mis acuerdos</h1>
+<div class="acuerdos-contenedor">
+  <div class="tabla-responsive">
+    <table class="tabla-acuerdos">
+      <thead>
+        <tr>
+          <th>Tiendas</th>
+          <th>Tasa</th>
+          <th>Línea</th>
+          <th>Meses</th>
+          <th>Fechas</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @if (cargando) {
+          <tr>
+            <td colspan="6" class="mensaje-tabla">Cargando acuerdos...</td>
+          </tr>
+        } @else if (error) {
+          <tr>
+            <td colspan="6" class="mensaje-tabla mensaje-error">
+              {{ error }}
+            </td>
+          </tr>
+        } @else if (acuerdos.length === 0) {
+          <tr>
+            <td colspan="6" class="mensaje-tabla">
+              Aún no hay información de acuerdos disponible.
+            </td>
+          </tr>
+        } @else {
+          @for (acuerdo of acuerdos; track acuerdo.id) {
+            <tr>
+              <td>{{ acuerdo.tienda }}</td>
+
+              <td>{{ acuerdo.tasa }}</td>
+
+              <td>{{ acuerdo.linea }}</td>
+
+              <td>{{ acuerdo.meses }}</td>
+
+              <td>{{ acuerdo.fechas }}</td>
+
+              <td>
+                <a class="boton-detalle" [routerLink]="['/cliente/acuerdos', acuerdo.id]"
+                  >Detalle</a
+                >
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

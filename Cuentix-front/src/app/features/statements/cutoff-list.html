@@ -1,0 +1,20 @@
+<app-page-header title="Listados al corte" description="Obligaciones emitidas para la fecha de pago de cada cuenta."/>
+<span class="help-field ui-field">
+  <span class="field-label">
+    <label for="statement-month">Mes del corte</label>
+    <app-field-help
+      field="Mes del corte"
+      message="Selecciona el mes y el año del listado al corte que deseas consultar. Por ejemplo, noviembre de 2026."
+    />
+  </span>
+  <input id="statement-month" type="month" #period [value]="month" (change)="load(period.value)">
+</span>
+@if(error()){<p role="alert">{{ error() }} <button mat-button (click)="load(month)">Reintentar</button></p>}
+@else if(reports();as rows){@for(r of rows;track r.id){<section class="statement-sheet">
+<header><div><h2>{{r.customer}}</h2><span>Pago pactado · {{r.paymentDay | date:'dd/MM/yyyy'}}</span></div>
+<strong>{{total(r.entries) | currency:r.currency}}</strong></header>
+<div class="table-scroll"><table class="data-table"><thead><tr><th>Compra</th><th>Fecha</th><th>Cuota</th><th class="numeric">Capital</th><th class="numeric">Interés</th><th class="numeric">Intereses por mora</th></tr></thead><tbody>
+@for(e of r.entries;track e.id){<tr><td><a [routerLink]="['/purchases',e.purchaseId,'schedule']">Compra {{e.purchaseId}}</a> @if(e.adjustment){<small>Ajuste posterior</small>}</td><td>{{e.purchaseDate | date:'dd/MM/yyyy'}}</td><td>{{e.number}}</td><td class="numeric">{{e.capital | currency:r.currency}}</td><td class="numeric">{{e.interest | currency:r.currency}}</td><td class="numeric">{{e.late | currency:r.currency}}</td></tr>}
+@empty{<tr><td colspan="6">Sin obligaciones exigibles en este corte.</td></tr>}</tbody></table></div></section>}
+@empty{<p class="loading-state">Todavía no se han emitido listados para este mes.</p>}}
+@else{<p role="status">Consultando listados…</p>}
