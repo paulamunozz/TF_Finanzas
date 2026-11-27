@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
@@ -28,6 +29,11 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(java.time.DateTimeException.class)
   public ResponseEntity<ErrorResponse> invalidDate(Exception ex) {
     return ResponseEntity.badRequest().body(new ErrorResponse(400, "Fecha invalida"));
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> invalidParameter(MethodArgumentTypeMismatchException ex) {
+    return ResponseEntity.badRequest().body(new ErrorResponse(400, "Parámetro inválido: " + ex.getName()));
   }
 
   // 404

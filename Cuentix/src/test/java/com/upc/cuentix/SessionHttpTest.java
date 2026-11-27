@@ -4,8 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.upc.cuentix.entities.*;
 import com.upc.cuentix.repositories.*;
+import com.upc.cuentix.services.CutoffService;
+import java.math.BigDecimal;
 import java.net.*;
 import java.net.http.*;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import tools.jackson.databind.json.JsonMapper;
 
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -24,7 +31,9 @@ class SessionHttpTest {
   @Autowired NegocioRepository businesses;
   @Autowired CuentaCreditoRepository accounts;
   @Autowired CompraRepository purchases;
+  @Autowired CutoffService cutoffs;
   @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
+  private final JsonMapper json = new JsonMapper();
   private final HttpClient http =
       HttpClient.newBuilder()
           .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
@@ -32,13 +41,16 @@ class SessionHttpTest {
 
   private HttpResponse<String> send(String method, String url, String body, String token)
       throws Exception {
+    return http.send(request(method, url, body, token), HttpResponse.BodyHandlers.ofString());
+  }
+
+  private HttpRequest request(String method, String url, String body, String token) {
     var b =
         HttpRequest.newBuilder(URI.create("http://localhost:" + port + url))
+            .timeout(Duration.ofSeconds(10))
             .header("Content-Type", "application/json");
     if (token != null) b.header("X-Cuentix-CSRF", token);
-    return http.send(
-        b.method(method, HttpRequest.BodyPublishers.ofString(body == null ? "" : body)).build(),
-        HttpResponse.BodyHandlers.ofString());
+    return b.method(method, HttpRequest.BodyPublishers.ofString(body == null ? "" : body)).build();
   }
 
   private Rol role(int id, String name) {
@@ -76,6 +88,134 @@ class SessionHttpTest {
     return m.group(1);
   }
 
+  private void seedSol() {
+    jdbc.update("""
+        insert into moneda(nombre, simbolo)
+        select 'Sol', 'S/' where not exists (select 1 from moneda where nombre = 'Sol')
+        """);
+  }
+
+  @Test
+  void groupedPaymentIsAtomicAndReconcilesWithTheIssuedStatement() throws Exception {
+    var buyer = client(user("11337799", role(2, "CLIENTE")));
+    var shop = new Negocio();
+    shop.setUsuario(user("20998877665", role(3, "NEGOCIO")));
+    shop.setRazonSocial("Tienda con cobro conjunto");
+    shop.setDireccion("Lima");
+    shop.setTelefono("999111222");
+    shop.setEstado(true);
+    shop = businesses.save(shop);
+    seedSol();
+    jdbc.update("insert into unidad_medida(nombre) values ('pieza')");
+
+    var login = send("POST", "/api/auth/login",
+        """
+        {"codigo":"20998877665","contrasena":"Password123"}
+        """, null);
+    assertEquals(200, login.statusCode(), login.body());
+    String token = field(login.body(), "csrfToken");
+    var agreement = send("POST", "/api/clients",
+        """
+        {"dni":"11337799","name":"Ana Perez","currency":"PEN","compensatoryRate":0,
+         "rateType":"TE","ratePeriod":"Mensual","lateRate":36,"lateRateType":"TN",
+         "maxMonths":120,"creditLine":1000,"cutOffDay":20,"cutoffTime":"18:00","paymentDay":25}
+        """, token);
+    assertEquals(200, agreement.statusCode(), agreement.body());
+    var accountId = Integer.valueOf(field(agreement.body(), "id"));
+    var product = send("POST", "/api/catalog",
+        """
+        {"name":"Producto para el corte","unit":"pieza","cashPrice":100,"creditPrice":100}
+        """, token);
+    assertEquals(200, product.statusCode(), product.body());
+    int productId = Integer.parseInt(field(product.body(), "id"));
+
+    YearMonth month = YearMonth.from(LocalDate.now(java.time.ZoneId.of("America/Lima"))).minusMonths(2);
+    LocalDate due = month.atDay(25);
+    LocalDate paidAt = month.plusMonths(1).atDay(5);
+    String purchaseRequest = """
+        {"accountId":%d,"mode":"single","purchaseDate":"%s","purchaseTime":"%s",
+         "items":[{"productId":%d,"quantity":%d}]}
+        """;
+    var first = send("POST", "/api/business/purchases",
+        purchaseRequest.formatted(accountId, month.atDay(15), "10:00", productId, 2), token);
+    var second = send("POST", "/api/business/purchases",
+        purchaseRequest.formatted(accountId, month.atDay(20), "17:59:59", productId, 3), token);
+    var nextCycle = send("POST", "/api/business/purchases",
+        purchaseRequest.formatted(accountId, month.atDay(20), "18:00", productId, 1), token);
+    assertEquals(200, first.statusCode(), first.body());
+    assertEquals(200, second.statusCode(), second.body());
+    assertEquals(200, nextCycle.statusCode(), nextCycle.body());
+    int firstPurchaseId = Integer.parseInt(field(first.body(), "id"));
+    int nextPurchaseId = Integer.parseInt(field(nextCycle.body(), "id"));
+    assertEquals(month.plusMonths(1).atDay(20), purchases.findById(nextPurchaseId).orElseThrow().getFechaCorte());
+
+    var laterTerms = send("PUT", "/api/clients/" + accountId,
+        agreement.body().replace("\"cutOffDay\":20", "\"cutOffDay\":22")
+            .replace("\"paymentDay\":25", "\"paymentDay\":28"), token);
+    assertEquals(200, laterTerms.statusCode(), laterTerms.body());
+    assertEquals(22, accounts.findById(accountId).orElseThrow().getDiaCorte());
+    cutoffs.issue(accountId, month.atDay(20).atTime(18, 0));
+    String statementUrl = "/api/business/cutoff?month=" + month;
+    var issued = send("GET", statementUrl, null, token);
+    assertEquals(200, issued.statusCode(), issued.body());
+    var issuedEntries = json.readTree(issued.body()).get(0).get("entries");
+    assertEquals(2, issuedEntries.size());
+    assertEquals(firstPurchaseId, issuedEntries.get(0).get("purchaseId").intValue());
+    assertEquals(due.toString(), issuedEntries.get(0).get("dueDate").asString());
+    assertTrue(issuedEntries.get(0).get("paidLate").isNull());
+
+    String paymentUrl = "/api/clients/" + accountId + "/payments/" + due;
+    assertEquals(400, send("GET", paymentUrl + "/quote?paidAt=incorrecta", null, token).statusCode());
+    var quoted = send("GET", paymentUrl + "/quote?paidAt=" + paidAt, null, token);
+    assertEquals(200, quoted.statusCode(), quoted.body());
+    var quote = json.readTree(quoted.body());
+    assertEquals(505.0, quote.get("total").doubleValue());
+    assertEquals(5.0, quote.get("late").doubleValue());
+    assertEquals(500.0, quote.get("capital").doubleValue());
+    int firstId = quote.get("lines").get(0).get("installmentId").intValue();
+    int secondId = quote.get("lines").get(1).get("installmentId").intValue();
+    String confirmation = """
+        {"paidAt":"%s","amount":505.00,"installmentIds":[%d,%d],"requestKey":"%s"}
+        """.formatted(paidAt, firstId, secondId, UUID.randomUUID());
+    assertEquals(403, send("POST", paymentUrl + "/confirm", confirmation, null).statusCode());
+    assertEquals(409, send("PUT", "/pagarCuota", Integer.toString(firstId), token).statusCode());
+    assertEquals(409, send("POST", "/api/payments/" + firstId + "/cancel",
+        "{\"paidAt\":\"" + paidAt + "\"}", token).statusCode());
+    assertEquals(409, send("POST", paymentUrl + "/confirm",
+        confirmation.replace(firstId + "," + secondId, Integer.toString(firstId)), token).statusCode());
+    assertEquals(400, send("POST", paymentUrl + "/confirm",
+        confirmation.replace("505.00", "202.00"), token).statusCode());
+    assertEquals(600.0, accounts.findById(accountId).orElseThrow().getDeuda());
+
+    var confirmationRequest = request("POST", paymentUrl + "/confirm", confirmation, token);
+    var firstAttempt = http.sendAsync(confirmationRequest, HttpResponse.BodyHandlers.ofString());
+    var retry = http.sendAsync(confirmationRequest, HttpResponse.BodyHandlers.ofString());
+    var saved = firstAttempt.get();
+    var retried = retry.get();
+    assertEquals(200, saved.statusCode(), saved.body());
+    assertEquals(200, retried.statusCode(), retried.body());
+    assertEquals(json.readTree(saved.body()), json.readTree(retried.body()));
+    assertEquals(1, jdbc.queryForObject("select count(*) from recibo_pago where cuenta_id = ?", Integer.class, accountId));
+    assertEquals(new BigDecimal("5.00"), jdbc.queryForObject(
+        "select sum(mora) from detalle_pago where cuota_id in (?, ?)", BigDecimal.class, firstId, secondId));
+    assertEquals(100.0, accounts.findById(accountId).orElseThrow().getDeuda());
+    assertTrue(purchases.findById(firstPurchaseId).orElseThrow().getFinalCuotas());
+    assertFalse(purchases.findById(nextPurchaseId).orElseThrow().getFinalCuotas());
+    assertEquals(409, send("POST", paymentUrl + "/confirm",
+        confirmation.replace("505.00", "500.00"), token).statusCode());
+
+    cutoffs.issue(accountId, paidAt.atStartOfDay());
+    var reported = json.readTree(send("GET", statementUrl, null, token).body()).get(0).get("entries");
+    assertEquals(2, reported.size());
+    assertEquals(0.0, reported.get(0).get("late").doubleValue());
+    assertEquals(2.0, reported.get(0).get("paidLate").doubleValue());
+    assertEquals(3.0, reported.get(1).get("paidLate").doubleValue());
+    assertEquals(paidAt.toString(), reported.get(0).get("paidAt").asString());
+    var ownedAccount = accounts.findById(accountId).orElseThrow();
+    assertEquals(buyer.getId(), ownedAccount.getCliente().getId());
+    assertEquals(shop.getId(), ownedAccount.getNegocio().getId());
+  }
+
   @Test
   void sessionCsrfIsolationAndPersistence() throws Exception {
     var customerRole = role(2, "CLIENTE");
@@ -92,7 +232,7 @@ class SessionHttpTest {
     var currency = new Moneda();
     currency.setNombre("Sol");
     currency.setSimbolo("S/");
-    jdbc.update("insert into moneda(nombre,simbolo) values ('Sol','S/')");
+    seedSol();
     Integer currencyId =
         jdbc.queryForObject("select id_moneda from moneda where nombre='Sol'", Integer.class);
     currency.setId(currencyId);
@@ -150,7 +290,10 @@ class SessionHttpTest {
     assertEquals(200, businessLogin.statusCode(), businessLogin.body());
     String businessToken = field(businessLogin.body(), "csrfToken");
     assertEquals(403, send("GET", "/api/cliente/mis-compras", null, businessToken).statusCode());
-    jdbc.update("insert into unidad_medida(nombre) values ('unidad')");
+    jdbc.update("""
+        insert into unidad_medida(nombre)
+        select 'unidad' where not exists (select 1 from unidad_medida where nombre = 'unidad')
+        """);
     var agreement =
         send(
             "POST",

@@ -1,20 +1,75 @@
-<app-page-header title="Listados al corte" description="Obligaciones emitidas para la fecha de pago de cada cuenta."/>
+<app-page-header
+  title="Listados al corte"
+  description="Obligaciones emitidas para cada cuenta y mora cobrada."
+/>
 <span class="help-field ui-field">
   <span class="field-label">
     <label for="statement-month">Mes del corte</label>
     <app-field-help
       field="Mes del corte"
-      message="Selecciona el mes y el año del listado al corte que deseas consultar. Por ejemplo, noviembre de 2026."
+      message="Selecciona el mes y el año del listado al corte. Por ejemplo, noviembre de 2026."
     />
   </span>
-  <input id="statement-month" type="month" #period [value]="month" (change)="load(period.value)">
+  <input id="statement-month" type="month" #period [value]="month" (change)="load(period.value)" />
 </span>
-@if(error()){<p role="alert">{{ error() }} <button mat-button (click)="load(month)">Reintentar</button></p>}
-@else if(reports();as rows){@for(r of rows;track r.id){<section class="statement-sheet">
-<header><div><h2>{{r.customer}}</h2><span>Pago pactado · {{r.paymentDay | date:'dd/MM/yyyy'}}</span></div>
-<strong>{{total(r.entries) | currency:r.currency}}</strong></header>
-<div class="table-scroll"><table class="data-table"><thead><tr><th>Compra</th><th>Fecha</th><th>Cuota</th><th class="numeric">Capital</th><th class="numeric">Interés</th><th class="numeric">Intereses por mora</th></tr></thead><tbody>
-@for(e of r.entries;track e.id){<tr><td><a [routerLink]="['/purchases',e.purchaseId,'schedule']">Compra {{e.purchaseId}}</a> @if(e.adjustment){<small>Ajuste posterior</small>}</td><td>{{e.purchaseDate | date:'dd/MM/yyyy'}}</td><td>{{e.number}}</td><td class="numeric">{{e.capital | currency:r.currency}}</td><td class="numeric">{{e.interest | currency:r.currency}}</td><td class="numeric">{{e.late | currency:r.currency}}</td></tr>}
-@empty{<tr><td colspan="6">Sin obligaciones exigibles en este corte.</td></tr>}</tbody></table></div></section>}
-@empty{<p class="loading-state">Todavía no se han emitido listados para este mes.</p>}}
-@else{<p role="status">Consultando listados…</p>}
+@if (error()) {
+  <p role="alert">{{ error() }} <button mat-button (click)="load(month)">Reintentar</button></p>
+} @else if (reports(); as rows) {
+  @for (report of rows; track report.id) {
+    <section class="statement-sheet">
+      <header>
+        <div>
+          <h2>{{ report.customer }}</h2>
+          <span>Fecha de pago de referencia · {{ report.paymentDay | date: 'dd/MM/yyyy' }}</span>
+        </div>
+        <strong>Total emitido · {{ total(report.entries) | currency: report.currency }}</strong>
+      </header>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Compra</th><th>Fecha de compra</th><th>Cuota</th><th>Vencimiento pactado</th>
+              <th class="numeric">Capital</th><th class="numeric">Interés compensatorio</th>
+              <th class="numeric">Interés por mora al emitir</th><th class="numeric">Interés por mora cobrado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of report.entries; track entry.id) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/purchases', entry.purchaseId, 'schedule']">Compra {{ entry.purchaseId }}</a>
+                  @if (entry.adjustment) { <div><small>Ajuste posterior</small></div> }
+                </td>
+                <td>{{ entry.purchaseDate | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ entry.number }}</td>
+                <td>{{ entry.dueDate | date: 'dd/MM/yyyy' }}</td>
+                <td class="numeric">{{ entry.capital | currency: report.currency }}</td>
+                <td class="numeric">
+                  {{ entry.interest | currency: report.currency }}
+                  @if (entry.graceInterest > 0) {
+                    <div><small>Incluye {{ entry.graceInterest | currency: report.currency }} de gracia</small></div>
+                  }
+                </td>
+                <td class="numeric">{{ entry.late | currency: report.currency }}</td>
+                <td class="numeric">
+                  @if (entry.paidLate !== null) {
+                    {{ entry.paidLate | currency: report.currency }}
+                    @if (entry.paidAt) { <div><small>{{ entry.paidAt | date: 'dd/MM/yyyy' }}</small></div> }
+                  } @else {
+                    <span>Pendiente</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="8">Sin obligaciones exigibles en este corte.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  } @empty {
+    <p class="loading-state">Todavía no se han emitido listados para este mes.</p>
+  }
+} @else {
+  <p role="status">Consultando listados…</p>
+}

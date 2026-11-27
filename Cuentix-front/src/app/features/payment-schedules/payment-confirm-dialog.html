@@ -1,13 +1,12 @@
 <h2 mat-dialog-title>Registrar pago completo</h2>
-<mat-dialog-content
-  ><p>{{ data.clientName }} · {{ data.item.purchaseId }}</p>
-  <p>Cuota {{ data.item.number }}/{{ data.item.totalInstallments }}</p>
+<mat-dialog-content>
+  <p>{{ data.clientName }} · Vencimiento {{ data.item.dueDate | date: 'dd/MM/yyyy' }}</p>
   <div class="help-field ui-field">
     <span class="field-label">
       <label for="effective-payment-date">Fecha efectiva</label>
       <app-field-help
         field="Fecha efectiva"
-        message="Selecciona el día en que se recibió el pago, desde la fecha de compra hasta hoy. La mora se calcula hasta el día elegido."
+        message="Selecciona el día en que se recibió el pago. Debe estar entre la última compra de este vencimiento y hoy. La mora se calcula hasta esa fecha."
       />
     </span>
     <input
@@ -18,30 +17,46 @@
       (ngModelChange)="load($event)"
       [max]="today"
       [min]="data.item.purchaseDate"
+      [disabled]="saving()"
     />
   </div>
-  @if (quote(); as amount) { <dl>
-    <div>
-      <dt>Cuota programada</dt>
-      <dd>{{ data.item.installmentAmount | currency: data.currency }}</dd>
-    </div>
-    <div>
-      <dt>Mora a la fecha efectiva</dt>
-      <dd>{{ amount.lateAmount | currency: data.currency }}</dd>
-    </div>
-    <div>
-      <dt>Total a cancelar</dt>
-      <dd>
-        <b>{{ total() | currency: data.currency }}</b>
-      </dd>
-    </div>
-  </dl> } @else if (error()) { <p role="alert">{{ error() }} <button mat-button (click)="load(date)">Reintentar</button></p> } @else if (valid()) { <p role="status">Consultando total…</p> }
-  @if (!valid()) {
-    <p role="alert">Selecciona una fecha válida, desde la compra hasta hoy.</p>
-  }</mat-dialog-content
-><mat-dialog-actions align="end"
-  ><button mat-button (click)="ref.close()">Cancelar</button
-  ><button mat-flat-button [disabled]="!quote()" (click)="ref.close({date: date, amount: total()})">
-    Confirmar pago
-  </button></mat-dialog-actions
->
+  @if (quote(); as payment) {
+    <ul class="payment-lines" aria-label="Obligaciones incluidas">
+      @for (line of payment.lines; track line.installmentId) {
+        <li>
+          <span>Compra {{ line.purchaseId }} · Cuota {{ line.number }}</span>
+          <strong>{{ line.capital + line.interest + line.late | currency: payment.currency }}</strong>
+        </li>
+      }
+    </ul>
+    <dl>
+      <div>
+        <dt>Interés por mora</dt><dd>{{ payment.late | currency: payment.currency }}</dd>
+      </div>
+      <div>
+        <dt>Interés compensatorio</dt><dd>{{ payment.interest | currency: payment.currency }}</dd>
+      </div>
+      <div>
+        <dt>Capital</dt><dd>{{ payment.capital | currency: payment.currency }}</dd>
+      </div>
+      <div>
+        <dt>Total a pagar</dt><dd><strong>{{ payment.total | currency: payment.currency }}</strong></dd>
+      </div>
+    </dl>
+  } @else if (quoteError()) {
+    <p role="alert">{{ quoteError() }} <button mat-button (click)="load(date)">Reintentar</button></p>
+  } @else if (valid()) {
+    <p role="status">Consultando obligaciones del vencimiento…</p>
+  } @else {
+    <p role="alert">Selecciona una fecha válida, desde la última compra del grupo hasta hoy.</p>
+  }
+  @if (confirmationError()) {
+    <p role="alert">{{ confirmationError() }}</p>
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="saving()">Cancelar</button>
+  <button mat-flat-button [disabled]="!quote() || saving()" (click)="confirm()">
+    {{ saving() ? 'Registrando…' : 'Confirmar pago' }}
+  </button>
+</mat-dialog-actions>

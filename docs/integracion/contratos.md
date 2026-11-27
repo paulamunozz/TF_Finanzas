@@ -24,7 +24,9 @@ en X-Cuentix-CSRF para escrituras. La sesión del servidor decide identidad, rol
 | /api/business/purchases                                                                           | POST           | Compra, ítems, cronograma y deuda       | Propietario y CSRF                         |
 | /api/payments                                                                                     | GET            | Cuotas; filtros clientId/purchaseId     | Propiedad de cuenta/compra                 |
 | /api/payments/{id}                                                                                | GET            | Detalle cuota                           | Propietario o administrador                |
-| /api/payments/{id}/cancel                                                                         | POST           | Cancelar y actualizar deuda             | Propietario y CSRF                         |
+| /api/payments/{id}/cancel                                                                         | POST           | Cancelar si es la única obligación pendiente del vencimiento | Propietario y CSRF |
+| /api/clients/{accountId}/payments/{dueDate}/quote?paidAt=AAAA-MM-DD                                 | GET            | Cotizar todas las obligaciones, la mora, el interés, el capital y el total | Propietario o administrador |
+| /api/clients/{accountId}/payments/{dueDate}/confirm                                                | POST           | Confirmar el pago conjunto y devolver el recibo | Propietario y CSRF |
 | ClientView de Manuel combina identidad y acuerdo. Para representar varias cuentas por persona,    |
 | id y los campos clientId de PurchaseView/PaymentView identifican CuentaCredito.id; dni identifica |
 | la persona. Esta adaptación evita consolidar monedas o condiciones de cuentas diferentes.         |
@@ -35,3 +37,9 @@ en X-Cuentix-CSRF para escrituras. La sesión del servidor decide identidad, rol
 | mismo flujo financiero; el identificador del borrador se conserva y no se permite refinalizar.    |
 | Registrar negocio sigue disponible en /registrarNegocio con NegocioDTO. No se inventó una         |
 | pantalla administrativa que no existía en las ramas inspeccionadas.                               |
+
+El cuerpo de confirmación contiene `paidAt` (fecha efectiva), `amount` (importe completo),
+`installmentIds` (IDs de todas las obligaciones cotizadas) y `requestKey` (UUID).
+Repetir el mismo cuerpo devuelve el recibo original. Si cambian las obligaciones o se vuelve a
+usar la clave para otro pago, la API responde 409. Un importe distinto al cotizado se rechaza con 400.
+La ruta legada `PUT /pagarCuota` aplica la misma restricción de pago completo.

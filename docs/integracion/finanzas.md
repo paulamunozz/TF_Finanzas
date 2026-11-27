@@ -8,9 +8,17 @@ capital. FinancialMath ahora valida períodos, multiplica capital y redondea HAL
 Las funciones de compatibilidad totalGracia/intereses mantienen cálculo compuesto documentado;
 la confirmación real y la ruta legada de crédito usan el cronograma francés de
 [cronograma-persistente.md](cronograma-persistente.md).
-Los importes de cuotas anteriores se conservan. La mora histórica de una cuota pagada y su
-fecha no se recalculan. La cotización pendiente usa la misma regla nominal simple30/360 que
-el frontend, porcentaje anual a siete decimales y redondeo monetario con BigDecimal.
-Math.pow se usa para potencias fraccionarias y se convierte a BigDecimal para multiplicación
-y redondeo. No se atribuye precisión decimal exacta a una potencia binaria.
-El esquema Double no se migró destructivamente; véase recomendaciones.md.
+Para `d` días comerciales, el factor de gracia es `(1 + TEA)^(d/360)`. Se cuentan
+360 días por año, 30 por mes y cada día del mes se limita a 30 al calcular la diferencia.
+
+Para una obligación vencida de importe `A`, la mora nominal anual `j` es `A × j × d/360`.
+Para una mora efectiva anual `i` es `A × ((1 + i)^(d/360) − 1)`.
+El servidor utiliza al menos siete decimales para las tasas y redondea los importes a
+dos decimales con `HALF_UP`. Las potencias fraccionarias usan aritmética de doble precisión.
+
+El importe del cobro conjunto suma los cargos de cada obligación, calculados con la tasa
+pactada en su compra. El recibo registra la imputación en orden de mora, interés compensatorio
+y capital. En un cronograma francés, la gracia se distribuye proporcionalmente a la amortización,
+ajustando el redondeo acumulado para asignar todos los céntimos. El listado incluye la gracia dentro
+del interés compensatorio y conserva el total emitido. En pagos históricos, la mora cobrada y la fecha
+se leen de la cuota.
