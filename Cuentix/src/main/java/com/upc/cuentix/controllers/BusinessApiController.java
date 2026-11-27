@@ -1,9 +1,14 @@
 package com.upc.cuentix.controllers;
 
+import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE;
+
 import com.upc.cuentix.services.BusinessApplicationService;
 import com.upc.cuentix.services.BusinessApplicationService.*;
+import com.upc.cuentix.services.GroupedPaymentService;
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDate;
 import java.util.List;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,9 +16,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api")
 public class BusinessApiController {
   private final BusinessApplicationService service;
+  private final GroupedPaymentService groupedPayments;
 
-  public BusinessApiController(BusinessApplicationService service) {
+  public BusinessApiController(BusinessApplicationService service, GroupedPaymentService groupedPayments) {
     this.service = service;
+    this.groupedPayments = groupedPayments;
   }
 
   @GetMapping("/business/context")
@@ -88,8 +95,22 @@ public class BusinessApiController {
   public PurchaseQuote quotePurchase(@RequestBody PurchaseRequest d) { return service.quotePurchase(d); }
 
   @GetMapping("/payments/{id}/quote")
-  public PaymentView quotePayment(@PathVariable Integer id, @RequestParam java.time.LocalDate paidAt) {
+  public PaymentView quotePayment(@PathVariable Integer id, @RequestParam @DateTimeFormat(iso = DATE) LocalDate paidAt) {
     return service.paymentQuote(id, paidAt);
+  }
+
+  @GetMapping("/clients/{accountId}/payments/{dueDate}/quote")
+  public GroupedPaymentService.Quote quoteGroupedPayment(
+      @PathVariable Integer accountId, @PathVariable @DateTimeFormat(iso = DATE) LocalDate dueDate,
+      @RequestParam(required = false) @DateTimeFormat(iso = DATE) LocalDate paidAt) {
+    return groupedPayments.quote(accountId, dueDate, paidAt);
+  }
+
+  @PostMapping("/clients/{accountId}/payments/{dueDate}/confirm")
+  public GroupedPaymentService.Receipt confirmGroupedPayment(
+      @PathVariable Integer accountId, @PathVariable @DateTimeFormat(iso = DATE) LocalDate dueDate,
+      @RequestBody GroupedPaymentService.Confirmation request) {
+    return groupedPayments.confirm(accountId, dueDate, request);
   }
 
   @PostMapping("/business/purchases")

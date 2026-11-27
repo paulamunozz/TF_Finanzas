@@ -50,7 +50,7 @@
             <p>Fecha efectiva: {{ data.item.paidAt | date: 'dd/MM/yyyy' }}</p>
           }
           @if (!data.item.cancelled) {
-            <button mat-flat-button (click)="pay()">Registrar cancelación completa</button>
+            <button mat-flat-button (click)="pay()">Pagar vencimiento</button>
           }
         </article>
         <article class="purchase">

@@ -89,7 +89,7 @@
             <label for="compensatoryRate">Tasa compensatoria</label>
             <app-field-help
               field="Tasa compensatoria"
-              message="Ingresa el interés del financiamiento como porcentaje positivo del período seleccionado. Por ejemplo, escribe 2 para una tasa de 2 %."
+              message="Ingresa el interés del período seleccionado como porcentaje. Escribe 0 si el crédito no cobra interés, o 2 para una tasa de 2 %."
             />
           </span>
           <div class="field-control">
@@ -99,11 +99,12 @@
                 form.controls.compensatoryRate.invalid && form.controls.compensatoryRate.touched
               "
               type="number"
-              step="0.01"
+              min="0"
+              step="any"
               formControlName="compensatoryRate"
             /><span class="field-suffix">%</span>
             @if (form.controls.compensatoryRate.invalid && form.controls.compensatoryRate.touched) {
-              <small class="field-error" role="alert">Debe ser mayor que cero</small>
+              <small class="field-error" role="alert">Ingresa un porcentaje mayor o igual a cero</small>
             }
           </div>
         </div>
@@ -176,7 +177,7 @@
             <label for="lateRate">Tasa moratoria</label>
             <app-field-help
               field="Tasa moratoria"
-              message="Ingresa un porcentaje mayor que cero para calcular el interés que se cobra por el retraso de una cuota. Escribe solo el número."
+              message="Ingresa el porcentaje anual aplicable al retraso. Escribe 0 si el acuerdo no cobra mora."
             />
           </span>
           <div class="field-control">
@@ -184,11 +185,12 @@
               id="lateRate"
               [attr.aria-invalid]="form.controls.lateRate.invalid && form.controls.lateRate.touched"
               type="number"
-              step="0.01"
+              min="0"
+              step="any"
               formControlName="lateRate"
             /><span class="field-suffix">%</span>
             @if (form.controls.lateRate.invalid && form.controls.lateRate.touched) {
-              <small class="field-error" role="alert">Debe ser mayor que cero</small>
+              <small class="field-error" role="alert">Ingresa un porcentaje mayor o igual a cero</small>
             }
           </div>
         </div>
@@ -215,8 +217,8 @@
         </div>
       </div>
       <p class="info">
-        La mora se calcula por cada obligación vencida y no se capitaliza, de acuerdo con el modelo
-        documentado.
+        La mora se calcula por cada obligación vencida. La nominal usa interés simple y la efectiva
+        usa su equivalente para los días de retraso.
       </p>
     </section>
     <section class="form-section">
@@ -249,7 +251,7 @@
             <label for="maxMonths">Plazo máximo</label>
             <app-field-help
               field="Plazo máximo"
-              message="Indica cuántos meses como máximo puede durar el financiamiento de una compra. Ingresa un número entero del 1 al 60."
+              message="Indica cuántos meses como máximo puede durar el financiamiento de una compra. Ingresa un número entero del 1 al 120."
             />
           </span>
           <div class="field-control">
@@ -259,10 +261,13 @@
                 form.controls.maxMonths.invalid && form.controls.maxMonths.touched
               "
               type="number"
+              min="1"
+              max="120"
+              step="1"
               formControlName="maxMonths"
             /><span class="field-suffix"> meses</span>
             @if (form.controls.maxMonths.invalid && form.controls.maxMonths.touched) {
-              <small class="field-error" role="alert">Ingresa entre 1 y 60 meses</small>
+              <small class="field-error" role="alert">Ingresa un número entero entre 1 y 120 meses</small>
             }
           </div>
         </div>

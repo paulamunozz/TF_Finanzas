@@ -17,7 +17,7 @@ import {
   statusLabels,
 } from '../../financial-engine/domain/schedule-domain';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
-import { PaymentConfirmDialog } from './payment-confirm-dialog';
+import { PaymentConfirmDialog, type PaymentDialogData, type PaymentReceipt } from './payment-confirm-dialog';
 @Component({
   selector: 'app-payment-report',
   imports: [FieldHelp, CurrencyPipe, DatePipe, FormsModule, RouterLink, MatButtonModule, PageHeader],
@@ -96,27 +96,19 @@ export class PaymentReport {
     const state = this.state()?.data;
     if (!state || item.cancelled) return;
     this.dialog
-      .open(PaymentConfirmDialog, {
-        width: '460px',
+      .open<PaymentConfirmDialog, PaymentDialogData, PaymentReceipt>(PaymentConfirmDialog, {
+        width: '520px',
         maxWidth: '95vw',
         data: {
           item,
           clientName: state.client.name,
-          currency:
-            state.purchases.find((p) => p.id === item.purchaseId)?.currency ??
-            state.client.currency,
         },
       })
       .afterClosed()
-      .subscribe((result?: { date: string; amount: number }) => {
-        if (result)
-          this.query.repository.cancel(item.id, result.date, result.amount).subscribe({
-            next: () => {
-              this.refresh.update((v) => v + 1);
-              this.snack.open('Pago completo registrado', 'Cerrar', { duration: 3000 });
-            },
-            error: (error) => this.snack.open(error.error?.message ?? 'No se pudo registrar el pago.', 'Cerrar', { duration: 4000 }),
-          });
+      .subscribe((receipt) => {
+        if (!receipt) return;
+        this.refresh.update((v) => v + 1);
+        this.snack.open(`Pago completo registrado · Recibo ${receipt.id}`, 'Cerrar', { duration: 4000 });
       });
   }
 }

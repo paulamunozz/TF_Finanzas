@@ -18,9 +18,22 @@ input {
   border-radius: 8px;
 }
 dl {
+  margin: 0;
   padding: 16px;
   background: var(--ds-background);
   border-radius: 10px;
+}
+.payment-lines {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.payment-lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
 }
 dl div {
   display: flex;

@@ -9,7 +9,7 @@ import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 import { ScheduleQuery } from '../../core/services/schedule-query.service';
 import { ClientService } from '../../core/services/client.service';
 import { installmentStatus, statusLabels } from '../../financial-engine/domain/schedule-domain';
-import { PaymentConfirmDialog } from './payment-confirm-dialog';
+import { PaymentConfirmDialog, type PaymentDialogData, type PaymentReceipt } from './payment-confirm-dialog';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
 @Component({
   selector: 'app-installment-detail',
@@ -51,25 +51,19 @@ export class InstallmentDetail {
     const state = this.state()?.data;
     if (!state || state.item.cancelled) return;
     this.dialog
-      .open(PaymentConfirmDialog, {
-        width: '460px',
+      .open<PaymentConfirmDialog, PaymentDialogData, PaymentReceipt>(PaymentConfirmDialog, {
+        width: '520px',
         maxWidth: '95vw',
         data: {
           item: state.item,
-          currency: state.purchase.currency,
           clientName: state.client.name,
         },
       })
       .afterClosed()
-      .subscribe((result?: { date: string; amount: number }) => {
-        if (result)
-          this.repository.cancel(state.item.id, result.date, result.amount).subscribe({
-            next: () => {
-              this.refresh.update((v) => v + 1);
-              this.snack.open('Pago completo registrado', 'Cerrar', { duration: 3000 });
-            },
-            error: (error) => this.snack.open(error.error?.message ?? 'No se pudo registrar el pago.', 'Cerrar', { duration: 4000 }),
-          });
+      .subscribe((receipt) => {
+        if (!receipt) return;
+        this.refresh.update((v) => v + 1);
+        this.snack.open(`Pago completo registrado · Recibo ${receipt.id}`, 'Cerrar', { duration: 4000 });
       });
   }
 }

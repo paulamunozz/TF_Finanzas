@@ -203,7 +203,7 @@
                   <div class="schedule-actions">
                     <a mat-button [routerLink]="['/installments', item.id]">Detalle</a>
                     @if (!item.cancelled) {
-                      <button mat-stroked-button (click)="pay(item)">Registrar pago</button>
+                      <button mat-stroked-button (click)="pay(item)">Pagar vencimiento</button>
                     }
                   </div>
                 </td>

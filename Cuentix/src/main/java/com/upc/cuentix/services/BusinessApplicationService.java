@@ -27,6 +27,7 @@ public class BusinessApplicationService {
   private final ItemRepository items;
   private final TasaRepository rates;
   private final EntityManager em;
+  private final GroupedPaymentService groupedPayments;
 
   public BusinessApplicationService(
       ResourceAccess access,
@@ -38,7 +39,8 @@ public class BusinessApplicationService {
       CuotaRepository installments,
       ItemRepository items,
       TasaRepository rates,
-      EntityManager em) {
+      EntityManager em,
+      GroupedPaymentService groupedPayments) {
     this.access = access;
     this.accounts = accounts;
     this.clients = clients;
@@ -49,6 +51,7 @@ public class BusinessApplicationService {
     this.items = items;
     this.rates = rates;
     this.em = em;
+    this.groupedPayments = groupedPayments;
   }
 
   public record Context(String id, String name) {}
@@ -146,7 +149,7 @@ public class BusinessApplicationService {
     return new Context(n.getId().toString(), n.getRazonSocial());
   }
 
-  String currency(CuentaCredito c) {
+  static String currency(CuentaCredito c) {
     String v = c.getMoneda().getSimbolo();
     return "S/".equals(v) || "S/.".equals(v)
         ? "PEN"
@@ -264,7 +267,7 @@ public class BusinessApplicationService {
 
   public ClientView updateClient(Integer id, ClientView d) {
     access.account(id);
-    CuentaCredito c = em.find(CuentaCredito.class, id, LockModeType.PESSIMISTIC_WRITE);
+    CuentaCredito c = groupedPayments.lockAccount(id);
     if (!c.getCliente().getUsuario().getCodigo().equals(d.dni()))
       throw new IllegalArgumentException("El DNI de la cuenta no se modifica");
     if (!currency(c).equals(d.currency()))
@@ -278,7 +281,7 @@ public class BusinessApplicationService {
 
   public void deleteClient(Integer id) {
     access.account(id);
-    CuentaCredito c = em.find(CuentaCredito.class, id, LockModeType.PESSIMISTIC_WRITE);
+    CuentaCredito c = groupedPayments.lockAccount(id);
     if (c.getDeuda() > 0)
       throw new IllegalArgumentException("No puede desactivar una cuenta con deuda");
     c.setEstado(false);
@@ -388,10 +391,6 @@ public class BusinessApplicationService {
         .toList();
   }
 
-  private String iso(java.util.Date d) {
-    return d == null ? null : new java.sql.Date(d.getTime()).toLocalDate().toString();
-  }
-
   private double zero(Double d) {
     return d == null ? 0 : d;
   }
@@ -436,24 +435,17 @@ public class BusinessApplicationService {
   PaymentView payment(Cuota q, LocalDate reference) {
     Compra c = q.getCompra();
     CuentaCredito a = c.getCuentaCredito();
-    String due = iso(q.getFechaVencimiento());
+    LocalDate due = InstallmentAmounts.dueDate(q);
     LocalDate today =
         Boolean.TRUE.equals(q.getCancelado()) && q.getFechaPago() != null
             ? q.getFechaPago()
             : reference;
-    LocalDate date = LocalDate.parse(due);
-    int days =
-        Math.max(
-            0,
-            (today.getYear() - date.getYear()) * 360
-                + (today.getMonthValue() - date.getMonthValue()) * 30
-                + Math.min(today.getDayOfMonth(), 30)
-                - Math.min(date.getDayOfMonth(), 30));
+    int days = Math.max(0, FinancialMath.commercialDays(due, today));
     double annual = zero(c.getTasaMora()) * 100;
     double mora =
         Boolean.TRUE.equals(q.getCancelado())
             ? zero(q.getMoras())
-            : FinancialMath.lateCharge(zero(q.getTotal()), c.getTasaMora(), days, c.getMoraEfectiva());
+            : InstallmentAmounts.lateAt(q, today).doubleValue();
     return new PaymentView(
         q.getId().toString(),
         c.getId().toString(),
@@ -463,7 +455,7 @@ public class BusinessApplicationService {
         c.getFecha().toString(),
         q.getNum(),
         c.getNumMeses(),
-        due,
+        due.toString(),
         zero(q.getIntereses()),
         FinancialMath.money(zero(q.getTotal()) - zero(q.getIntereses())).doubleValue(),
         zero(q.getTotal()),
@@ -489,7 +481,7 @@ public class BusinessApplicationService {
     Cuota q = installments.findById(id).orElseThrow(this::missing);
     access.purchase(q.getCompra().getId());
     if (paidAt.isBefore(q.getCompra().getFecha()) || paidAt.isAfter(LocalDate.now(ZoneId.of("America/Lima"))))
-      throw new IllegalArgumentException("Fecha de pago inv?lida");
+      throw new IllegalArgumentException("Fecha de pago inválida");
     return payment(q, paidAt);
   }
 
@@ -502,36 +494,8 @@ public class BusinessApplicationService {
   public PaymentView cancel(Integer id, PaymentRequest d) {
     Cuota q = installments.findById(id).orElseThrow(this::missing);
     access.purchase(q.getCompra().getId());
-    CuentaCredito a =
-        em.find(
-            CuentaCredito.class,
-            q.getCompra().getCuentaCredito().getId(),
-            LockModeType.PESSIMISTIC_WRITE);
-    em.refresh(q, LockModeType.PESSIMISTIC_WRITE);
-    if (Boolean.TRUE.equals(q.getCancelado()))
-      throw new IllegalArgumentException("Cuota ya cancelada");
     if (d.paidAt() == null) throw new IllegalArgumentException("Indique fecha");
-    LocalDate paid = LocalDate.parse(d.paidAt());
-    if (paid.isAfter(LocalDate.now(ZoneId.of("America/Lima")))
-        || paid.isBefore(q.getCompra().getFecha()))
-      throw new IllegalArgumentException("Fecha de pago invalida");
-    if (installments.existsByCompra_IdAndNumLessThanAndCanceladoFalse(q.getCompra().getId(), q.getNum()))
-      throw new IllegalArgumentException("Pague primero las cuotas anteriores");
-    PaymentView quote = payment(q, paid);
-    BigDecimal totalDue = FinancialMath.money(q.getTotal() + quote.lateAmount());
-    if (d.amount() != null && totalDue.compareTo(d.amount()) != 0)
-      throw new IllegalArgumentException("El importe debe coincidir con el total exigible");
-    q.setFechaPago(paid);
-    q.setMoras(quote.lateAmount());
-    q.setCancelado(true);
-    installments.save(q);
-    a.setDeuda(FinancialMath.money(Math.max(0, a.getDeuda() - q.getTotal())).doubleValue());
-    accounts.save(a);
-    Compra c = q.getCompra();
-    c.setFinalCuotas(
-        installments.findByCompra_Id(c.getId()).stream()
-            .allMatch(v -> Boolean.TRUE.equals(v.getCancelado())));
-    purchases.save(c);
+    groupedPayments.confirmLegacy(q, LocalDate.parse(d.paidAt()), d.amount());
     return payment(q);
   }
 
@@ -585,7 +549,7 @@ public class BusinessApplicationService {
     if (d.accountId() == null || d.items() == null || d.items().isEmpty())
       throw new IllegalArgumentException("Indique cuenta y productos");
     access.account(d.accountId());
-    CuentaCredito a = em.find(CuentaCredito.class, d.accountId(), LockModeType.PESSIMISTIC_WRITE);
+    CuentaCredito a = groupedPayments.lockAccount(d.accountId());
     if (draft != null) {
       em.refresh(draft, LockModeType.PESSIMISTIC_WRITE);
       if (draft.getFecha() != null) throw new IllegalArgumentException("Compra ya finalizada");
