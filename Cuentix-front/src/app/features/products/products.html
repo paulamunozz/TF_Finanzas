@@ -33,13 +33,27 @@
       </div>
       <div class="help-field">
         <span class="field-label">
-          <label for="product-unit">Unidad</label>
+          <label for="product-unit">Unidad de medida</label>
           <app-field-help
-            field="Unidad"
-            message="Indica cómo se vende el producto o servicio. Por ejemplo, unidad, kilogramo o caja."
+            field="Unidad de medida"
+            message="Selecciona la unidad en la que se vende el producto o servicio."
           />
         </span>
-        <input id="product-unit" name="unit" [(ngModel)]="draft.unit" required />
+        <select id="product-unit" name="unitId" [(ngModel)]="draft.unitId" required
+          [disabled]="units.isLoading() || !units.hasValue() || !units.value().length">
+          <option [ngValue]="null" disabled>{{ units.isLoading() ? 'Cargando unidades…' : 'Selecciona una unidad' }}</option>
+          @if (units.hasValue()) {
+            @for (option of units.value(); track option.id) {
+              <option [ngValue]="option.id">{{ option.nombre }}</option>
+            }
+          }
+        </select>
+        @if (units.error()) {
+          <small role="alert">No se pudieron cargar las unidades de medida.</small>
+          <button mat-button type="button" (click)="units.reload()">Reintentar</button>
+        } @else if (!units.isLoading() && !units.value().length) {
+          <small role="status">No hay unidades de medida configuradas.</small>
+        }
       </div>
       <div class="help-field">
         <span class="field-label">
@@ -122,7 +136,7 @@
         </span>
       </div>
       <button mat-button type="button" (click)="showForm.set(false)">Cancelar</button>
-      <button mat-flat-button [disabled]="saving() || productForm.invalid || draft.creditPrice < draft.cashPrice">Guardar producto</button>
+      <button mat-flat-button [disabled]="saving() || productForm.invalid || draft.unitId == null || units.isLoading() || !units.hasValue() || !units.value().length || draft.creditPrice < draft.cashPrice">Guardar producto</button>
       @if (draft.creditPrice < draft.cashPrice) { <p role="alert">El precio a crédito debe cubrir el precio contado.</p> }
     </form>
   }

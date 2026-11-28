@@ -26,7 +26,7 @@ export class CatalogStore {
       },
     });
   }
-  save(draft: Omit<CatalogProduct, 'id'>, id: number | null) {
+  save(draft: Omit<CatalogProduct, 'id' | 'unit' | 'unitId'> & { unitId: number }, id: number | null) {
     this.error.set('');
     const request =
       id === null

@@ -5,6 +5,7 @@ export interface Client {
   dni: string;
   name: string;
   currency: string;
+  currencyId?: number;
   compensatoryRate: number;
   rateType: RateType;
   ratePeriod: 'Mensual' | 'Diaria';

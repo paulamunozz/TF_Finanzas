@@ -59,18 +59,30 @@
             <label for="currency">Moneda</label>
             <app-field-help
               field="Moneda"
-              message="Elige soles (PEN) o dólares (USD) para la línea de crédito y las obligaciones de esta cuenta."
+              [message]="id ? 'La moneda se fija al registrar la cuenta.' : 'Selecciona la moneda de la línea de crédito y las obligaciones de esta cuenta.'"
             />
           </span>
           <div class="field-control">
             <select
               id="currency"
-              [attr.aria-invalid]="form.controls.currency.invalid && form.controls.currency.touched"
-              formControlName="currency"
+              [attr.aria-invalid]="form.controls.currencyId.invalid && form.controls.currencyId.touched"
+              formControlName="currencyId"
             >
-              <option value="PEN">Soles (PEN)</option>
-              <option value="USD">Dólares (USD)</option>
+              <option [ngValue]="null" disabled>{{ currencies.isLoading() ? 'Cargando monedas…' : 'Selecciona una moneda' }}</option>
+              @if (currencies.hasValue()) {
+                @for (option of currencies.value(); track option.id) {
+                  <option [ngValue]="option.id">{{ option.nombre }} ({{ option.simbolo }})</option>
+                }
+              }
             </select>
+            @if (currencies.error()) {
+              <small class="field-error" role="alert">No se pudieron cargar las monedas.</small>
+              <button mat-button type="button" (click)="currencies.reload()">Reintentar</button>
+            } @else if (!currencies.isLoading() && !currencies.value().length) {
+              <small class="field-error" role="status">No hay monedas configuradas.</small>
+            } @else if (form.controls.currencyId.invalid && form.controls.currencyId.touched) {
+              <small class="field-error" role="alert">Selecciona una moneda.</small>
+            }
           </div>
         </div>
       </div>
@@ -239,8 +251,10 @@
             />
           </span>
           <div class="field-control">
-            <span class="field-prefix">{{ form.controls.currency.value }}</span
-            ><input id="creditLine" type="number" step="0.01" formControlName="creditLine" />
+            @if (selectedCurrency(); as currency) {
+              <span class="field-prefix">{{ currency.simbolo }}</span>
+            }
+            <input id="creditLine" type="number" step="0.01" formControlName="creditLine" />
             @if (form.controls.creditLine.invalid && form.controls.creditLine.touched) {
               <small class="field-error" role="alert">Ingresa un importe válido</small>
             }
@@ -332,7 +346,7 @@
     </span>
     <footer>
       <a mat-button routerLink="/clients">Cancelar</a
-      ><button mat-flat-button type="submit" [disabled]="saving()">
+      ><button mat-flat-button type="submit" [disabled]="saving() || currencies.isLoading() || currencies.error() !== undefined || !currencies.hasValue() || !currencies.value().length">
         {{ saving() ? 'Guardando…' : id ? 'Guardar cambios' : 'Registrar cliente' }}
       </button>
     </footer>

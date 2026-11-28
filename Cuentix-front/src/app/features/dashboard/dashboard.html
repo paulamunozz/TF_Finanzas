@@ -4,9 +4,12 @@
   </app-page-header>
   @if (error()) {
     <p role="alert">{{ error() }} <button mat-button (click)="load()">Reintentar</button></p>
-  } @else if (data(); as state) {
-    @if (currencies().length > 1) {
-      <div class="help-field currency-selector">
+  } @else if (currencies.error()) {
+    <p role="alert">No se pudieron cargar las monedas. <button mat-button (click)="currencies.reload()">Reintentar</button></p>
+  } @else if (!data() || currencies.isLoading()) {
+    <div class="loading-state" role="status">Cargando información financiera…</div>
+  } @else if (selectedCurrency(); as selected) {
+    <div class="help-field currency-selector">
         <span class="field-label">
           <label for="dashboard-currency">Moneda de la cartera</label>
           <app-field-help
@@ -14,15 +17,16 @@
             message="Selecciona la moneda en la que quieres consultar los saldos, créditos activos y próximos vencimientos."
           />
         </span>
-        <select id="dashboard-currency" #selection [value]="currency()" (change)="currency.set(selection.value)">
-          @for (code of currencies(); track code) { <option [value]="code">{{ code }}</option> }
+        <select id="dashboard-currency" [ngModel]="selected.id" (ngModelChange)="currencyId.set($event)">
+          @for (option of currencies.value(); track option.id) {
+            <option [ngValue]="option.id">{{ option.nombre }} ({{ option.simbolo }})</option>
+          }
         </select>
-      </div>
-    }
+    </div>
     <div class="metrics">
-      <article class="principal"><p>Cuentas por cobrar</p><strong>{{ pending() | currency:currency() }}</strong><small>Incluye intereses y mora al día</small></article>
-      <article><p>Deuda vencida</p><strong>{{ pastDue() | currency:currency() }}</strong><small>{{ overdue().length }} cuotas vencidas</small></article>
-      <article><p>Créditos activos</p><strong>{{ active() }}</strong><small>Con saldo pendiente en {{ currency() }}</small></article>
+      <article class="principal"><p>Cuentas por cobrar</p><strong>{{ pending() | currency: selected.code : selected.simbolo }}</strong><small>Incluye intereses y mora al día</small></article>
+      <article><p>Deuda vencida</p><strong>{{ pastDue() | currency: selected.code : selected.simbolo }}</strong><small>{{ overdue().length }} cuotas vencidas</small></article>
+      <article><p>Créditos activos</p><strong>{{ active() }}</strong><small>Con saldo pendiente en {{ selected.nombre }}</small></article>
     </div>
     <div class="overview">
       <article class="card">
@@ -71,7 +75,7 @@
               ><b>{{ item.clientName }}</b
               ><small>{{ item.dueDate | date: 'dd/MM/yyyy' }}</small></span
             ><strong>{{
-              item.installmentAmount + item.lateAmount | currency: currency()
+              item.installmentAmount + item.lateAmount | currency: selected.code : selected.simbolo
             }}</strong
             ><span aria-hidden="true">→</span></a
           >
@@ -81,6 +85,6 @@
       </article>
     </div>
   } @else {
-    <div class="loading-state" role="status">Cargando información financiera…</div>
+    <p role="status">No hay monedas configuradas.</p>
   }
 </section>

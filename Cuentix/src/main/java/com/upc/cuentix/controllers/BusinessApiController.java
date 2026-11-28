@@ -2,6 +2,7 @@ package com.upc.cuentix.controllers;
 
 import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE;
 
+import com.upc.cuentix.dto.UnidadMedidaDTO;
 import com.upc.cuentix.services.BusinessApplicationService;
 import com.upc.cuentix.services.BusinessApplicationService.*;
 import com.upc.cuentix.services.GroupedPaymentService;
@@ -62,6 +63,16 @@ public class BusinessApiController {
   @PostMapping("/catalog")
   public ProductView createProduct(@RequestBody ProductView d, HttpSession s) {
     return service.createProduct(d, s);
+  }
+
+  @GetMapping("/catalog/currencies")
+  public List<CurrencyOption> currencies() {
+    return service.currencyOptions();
+  }
+
+  @GetMapping("/catalog/units")
+  public List<UnidadMedidaDTO> units() {
+    return service.unitOptions();
   }
 
   @PutMapping("/catalog/{id}")

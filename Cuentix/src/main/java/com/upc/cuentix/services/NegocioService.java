@@ -158,7 +158,7 @@ public class NegocioService implements INegocioService {
   private Giro buscarGiro(Integer idGiro) {
     return giroRepository
         .findById(idGiro)
-        .orElseThrow(() -> new RuntimeException("No existe el giro de id " + idGiro));
+        .orElseThrow(() -> new IllegalArgumentException("Giro no configurado"));
   }
 
   private boolean tiene(String s) {
