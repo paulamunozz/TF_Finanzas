@@ -24,7 +24,8 @@ form {
   color: var(--ds-muted);
   font-size: 12px;
 }
-input {
+input,
+select {
   height: 42px;
   padding: 0 12px;
   border: 1px solid var(--ds-input);

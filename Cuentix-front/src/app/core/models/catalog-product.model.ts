@@ -1,7 +1,8 @@
 export interface CatalogProduct {
   id: number;
   name: string;
-  unit: string;
+  unit: string | null;
+  unitId: number | null;
   active?: boolean;
   supplier?: string;
   brand?: string;

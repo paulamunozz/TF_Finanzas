@@ -96,6 +96,87 @@ class SessionHttpTest {
   }
 
   @Test
+  void referenceCatalogUsesStoredIdsForCreditAccountsProductsAndBusinesses() throws Exception {
+    client(user("22334455", role(2, "CLIENTE")));
+    var shop = new Negocio();
+    shop.setUsuario(user("20199200123", role(3, "NEGOCIO")));
+    shop.setRazonSocial("Tienda de catálogos");
+    shop.setDireccion("Lima");
+    shop.setTelefono("999111222");
+    shop.setEstado(true);
+    businesses.save(shop);
+    jdbc.update("insert into moneda(id_moneda, nombre, simbolo) values (71, 'Dólar de prueba', '$')");
+    jdbc.update("insert into unidad_medida(id_um, nombre) values (81, 'gramo'), (82, 'libra')");
+
+    assertEquals(401, send("GET", "/api/catalog/currencies", null, null).statusCode());
+    var login = send("POST", "/api/auth/login",
+        """
+        {"codigo":"20199200123","contrasena":"Password123"}
+        """, null);
+    assertEquals(200, login.statusCode(), login.body());
+    String token = field(login.body(), "csrfToken");
+    var currencies = send("GET", "/api/catalog/currencies", null, null);
+    assertEquals(200, currencies.statusCode(), currencies.body());
+    assertTrue(json.readTree(currencies.body()).valueStream().anyMatch(option ->
+        option.get("id").asInt() == 71 && option.get("nombre").asText().equals("Dólar de prueba")
+            && option.get("simbolo").asText().equals("$") && option.get("code").asText().equals("USD")));
+    var units = send("GET", "/api/catalog/units", null, null);
+    assertEquals(200, units.statusCode(), units.body());
+    assertTrue(json.readTree(units.body()).valueStream().anyMatch(option ->
+        option.get("id").asInt() == 81 && option.get("nombre").asText().equals("gramo")));
+    assertEquals(403, send("GET", "/api/admin/businesses/giros", null, null).statusCode());
+
+    String account = """
+        {"dni":"22334455","currencyId":%d,"currency":"USD","compensatoryRate":0,
+         "rateType":"TE","ratePeriod":"Mensual","lateRate":0,"lateRateType":"TN",
+         "maxMonths":12,"creditLine":500,"cutOffDay":20,"paymentDay":25}
+        """;
+    assertEquals(400, send("POST", "/api/clients", account.formatted(9999), token).statusCode());
+    var agreement = send("POST", "/api/clients", account.formatted(71), token);
+    assertEquals(200, agreement.statusCode(), agreement.body());
+    assertEquals("71", field(agreement.body(), "currencyId"));
+    assertEquals("USD", field(agreement.body(), "currency"));
+    String agreementUrl = "/api/clients/" + field(agreement.body(), "id");
+    assertEquals(400, send("PUT", agreementUrl, account.formatted(9999), token).statusCode());
+    var savedAgreement = send("GET", agreementUrl, null, null);
+    assertEquals("71", field(savedAgreement.body(), "currencyId"));
+
+    String product = """
+        {"name":"Producto de prueba de unidad","unitId":%d,"cashPrice":10,"creditPrice":15}
+        """;
+    var created = send("POST", "/api/catalog", product.formatted(81), token);
+    assertEquals(200, created.statusCode(), created.body());
+    assertEquals("gramo", field(created.body(), "unit"));
+    String productUrl = "/api/catalog/" + field(created.body(), "id");
+    assertEquals(400, send("PUT", productUrl, product.formatted(9999), token).statusCode());
+    var edited = send("PUT", productUrl, product.formatted(82), token);
+    assertEquals(200, edited.statusCode(), edited.body());
+    assertEquals("82", field(edited.body(), "unitId"));
+    assertEquals("libra", field(edited.body(), "unit"));
+
+    user("catalog-admin", role(1, "ADMIN"));
+    jdbc.update("insert into giro(id_giro, nombre) values (91, 'Servicios de prueba')");
+    var adminLogin = send("POST", "/api/auth/login",
+        """
+        {"codigo":"catalog-admin","contrasena":"Password123"}
+        """, null);
+    assertEquals(200, adminLogin.statusCode(), adminLogin.body());
+    String adminToken = field(adminLogin.body(), "csrfToken");
+    var sectors = send("GET", "/api/admin/businesses/giros", null, null);
+    assertEquals(200, sectors.statusCode(), sectors.body());
+    assertTrue(json.readTree(sectors.body()).valueStream().anyMatch(option ->
+        option.get("id").asInt() == 91 && option.get("nombre").asText().equals("Servicios de prueba")));
+    String business = """
+        {"ruc":"20991234567","contrasena":"Password123","razonSocial":"Tienda de prueba",
+         "direccion":"Lima","telefono":"999111222","giroId":%d}
+        """;
+    assertEquals(400, send("POST", "/api/admin/businesses", business.formatted(9999), adminToken).statusCode());
+    var registered = send("POST", "/api/admin/businesses", business.formatted(91), adminToken);
+    assertEquals(200, registered.statusCode(), registered.body());
+    assertEquals("91", field(registered.body(), "giroId"));
+  }
+
+  @Test
   void groupedPaymentIsAtomicAndReconcilesWithTheIssuedStatement() throws Exception {
     var buyer = client(user("11337799", role(2, "CLIENTE")));
     var shop = new Negocio();

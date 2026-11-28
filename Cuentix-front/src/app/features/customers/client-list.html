@@ -28,14 +28,26 @@
         <label for="clients-currency">Moneda</label>
         <app-field-help
           field="Moneda"
-          message="Filtra las cuentas por soles (PEN) o dólares (USD). Elige Todas para ver ambas monedas."
+          message="Filtra las cuentas por moneda. Elige Todas para ver el listado completo."
         />
       </span>
-      <select id="clients-currency" [(ngModel)]="currency" (ngModelChange)="page.set(0)">
-        <option value="">Todas</option>
-        <option>PEN</option>
-        <option>USD</option>
+      <select id="clients-currency" [(ngModel)]="currencyId" (ngModelChange)="page.set(0)"
+        [disabled]="currencies.isLoading() || !currencies.hasValue() || !currencies.value().length">
+        <option [ngValue]="null">Todas</option>
+        @if (currencies.hasValue()) {
+          @for (option of currencies.value(); track option.id) {
+            <option [ngValue]="option.id">{{ option.nombre }} ({{ option.simbolo }})</option>
+          }
+        }
       </select>
+      @if (currencies.isLoading()) {
+        <small role="status">Cargando monedas…</small>
+      } @else if (currencies.error()) {
+        <small role="alert">No se pudieron cargar las monedas.</small>
+        <button mat-button type="button" (click)="currencies.reload()">Reintentar</button>
+      } @else if (!currencies.value().length) {
+        <small role="status">No hay monedas configuradas.</small>
+      }
     </div>
     <div class="help-field">
       <span class="field-label">

@@ -1,6 +1,7 @@
 package com.upc.cuentix.services;
 
 import com.upc.cuentix.config.ResourceAccess;
+import com.upc.cuentix.dto.UnidadMedidaDTO;
 import com.upc.cuentix.entities.*;
 import com.upc.cuentix.repositories.*;
 import jakarta.persistence.EntityManager;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.*;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,8 @@ public class BusinessApplicationService {
   private final CuotaRepository installments;
   private final ItemRepository items;
   private final TasaRepository rates;
+  private final MonedaRepository currencies;
+  private final UnidadMedidaRepository units;
   private final EntityManager em;
   private final GroupedPaymentService groupedPayments;
 
@@ -39,6 +43,8 @@ public class BusinessApplicationService {
       CuotaRepository installments,
       ItemRepository items,
       TasaRepository rates,
+      MonedaRepository currencies,
+      UnidadMedidaRepository units,
       EntityManager em,
       GroupedPaymentService groupedPayments) {
     this.access = access;
@@ -50,11 +56,15 @@ public class BusinessApplicationService {
     this.installments = installments;
     this.items = items;
     this.rates = rates;
+    this.currencies = currencies;
+    this.units = units;
     this.em = em;
     this.groupedPayments = groupedPayments;
   }
 
   public record Context(String id, String name) {}
+
+  public record CurrencyOption(Integer id, String nombre, String simbolo, String code) {}
 
   public record ClientView(
       String id,
@@ -72,11 +82,12 @@ public class BusinessApplicationService {
       int cutOffDay,
       int paymentDay,
       String cutoffTime,
-      Double usedCredit, Boolean active) {}
+      Double usedCredit, Boolean active, Integer currencyId) {}
 
   public record ProductView(
       Integer id, String name, String unit, double cashPrice, double creditPrice,
-      String description, String brand, String supplier, String imageUrl, Boolean installmentsAllowed, Boolean active) {}
+      String description, String brand, String supplier, String imageUrl, Boolean installmentsAllowed,
+      Boolean active, Integer unitId) {}
 
   public record PurchasedProduct(String name, Integer quantity, String unit) {}
 
@@ -149,11 +160,29 @@ public class BusinessApplicationService {
     return new Context(n.getId().toString(), n.getRazonSocial());
   }
 
+  @Transactional(readOnly = true)
+  public List<CurrencyOption> currencyOptions() {
+    return currencies.findAll(Sort.by("id")).stream()
+        .map(m -> new CurrencyOption(m.getId(), m.getNombre(), m.getSimbolo(), currencyCode(m)))
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<UnidadMedidaDTO> unitOptions() {
+    return units.findAll(Sort.by("id")).stream()
+        .map(u -> new UnidadMedidaDTO(u.getId(), u.getNombre()))
+        .toList();
+  }
+
   static String currency(CuentaCredito c) {
-    String v = c.getMoneda().getSimbolo();
+    return currencyCode(c.getMoneda());
+  }
+
+  private static String currencyCode(Moneda moneda) {
+    String v = moneda.getSimbolo();
     return "S/".equals(v) || "S/.".equals(v)
         ? "PEN"
-        : "$".equals(v) ? "USD" : c.getMoneda().getNombre();
+        : "$".equals(v) ? "USD" : moneda.getNombre();
   }
 
   private Tasa rate(CuentaCredito c, boolean late) {
@@ -187,7 +216,7 @@ public class BusinessApplicationService {
         c.getLimite(),
         c.getDiaCorte(),
         c.getDiaPago(), c.getHoraCorte() == null ? null : c.getHoraCorte().toString(),
-        c.getDeuda(), c.getEstado());
+        c.getDeuda(), c.getEstado(), c.getMoneda().getId());
   }
 
   public List<ClientView> clients() { return clients(false); }
@@ -247,16 +276,7 @@ public class BusinessApplicationService {
     c.setNegocio(business(session));
     c.setEstado(true);
     c.setDeuda(0.0);
-    var currencies = em.createQuery("select m from Moneda m", Moneda.class).getResultList();
-    c.setMoneda(
-        currencies.stream()
-            .filter(
-                m ->
-                    ("PEN".equals(d.currency()) && m.getSimbolo().startsWith("S/"))
-                        || ("USD".equals(d.currency()) && "$".equals(m.getSimbolo()))
-                        || d.currency().equals(m.getNombre()))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Moneda no configurada")));
+    c.setMoneda(findCurrency(d));
     apply(d, c);
     c = accounts.save(c);
     writeRate(
@@ -265,12 +285,25 @@ public class BusinessApplicationService {
     return client(c);
   }
 
+  private Moneda findCurrency(ClientView d) {
+    var match = d.currencyId() != null
+        ? currencies.findById(d.currencyId())
+        : currencies.findAll(Sort.by("id")).stream()
+            .filter(m -> currencyCode(m).equals(d.currency()) || m.getNombre().equals(d.currency())
+                || ("PEN".equals(d.currency()) && m.getSimbolo().startsWith("S/")))
+            .findFirst();
+    return match.orElseThrow(() -> new IllegalArgumentException("Moneda no configurada"));
+  }
+
   public ClientView updateClient(Integer id, ClientView d) {
     access.account(id);
     CuentaCredito c = groupedPayments.lockAccount(id);
     if (!c.getCliente().getUsuario().getCodigo().equals(d.dni()))
       throw new IllegalArgumentException("El DNI de la cuenta no se modifica");
-    if (!currency(c).equals(d.currency()))
+    boolean sameCurrency = d.currencyId() != null
+        ? d.currencyId().equals(c.getMoneda().getId())
+        : currency(c).equals(d.currency());
+    if (!sameCurrency)
       throw new IllegalArgumentException("La moneda requiere una cuenta nueva");
     apply(d, c);
     writeRate(
@@ -289,12 +322,14 @@ public class BusinessApplicationService {
   }
 
   private ProductView product(Producto p) {
+    UnidadMedida unit = p.getUnidadMedida();
     return new ProductView(
         p.getId(),
         p.getNombre(),
-        p.getUnidadMedida().getNombre(),
+        unit == null ? null : unit.getNombre(),
         p.getPrecioContado(),
-        p.getPrecioLista(), p.getDescripcion(), p.getMarca(), p.getProovedor(), p.getImagenURL(), p.getPagoCuotas(), p.getEstado());
+        p.getPrecioLista(), p.getDescripcion(), p.getMarca(), p.getProovedor(), p.getImagenURL(),
+        p.getPagoCuotas(), p.getEstado(), unit == null ? null : unit.getId());
   }
 
   public List<ProductView> catalog(HttpSession s) {
@@ -344,16 +379,10 @@ public class BusinessApplicationService {
         || !Double.isFinite(d.creditPrice())
         || d.cashPrice() <= 0
         || d.creditPrice() <= 0) throw new IllegalArgumentException("Producto invalido");
-    var unit =
-        em
-            .createQuery(
-                "select u from UnidadMedida u where lower(u.nombre)=lower(:name)",
-                UnidadMedida.class)
-            .setParameter("name", d.unit())
-            .getResultList()
-            .stream()
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unidad no configurada"));
+    var unit = (d.unitId() != null
+        ? units.findById(d.unitId())
+        : units.findFirstByNombreIgnoreCaseOrderById(d.unit()))
+        .orElseThrow(() -> new IllegalArgumentException("Unidad no configurada"));
     if (d.creditPrice() < d.cashPrice()) throw new IllegalArgumentException("El precio a crédito debe cubrir el precio contado");
     if (d.description() != null) p.setDescripcion(d.description().trim());
     if (d.brand() != null) p.setMarca(d.brand().trim());

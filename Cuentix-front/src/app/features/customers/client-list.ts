@@ -13,6 +13,7 @@ import { RouterLink } from '@angular/router';
 import { catchError, of, startWith, Subject, switchMap } from 'rxjs';
 import { Client } from '../../core/models/client.model';
 import { ClientService } from '../../core/services/client.service';
+import { ReferenceCatalogService } from '../../core/services/reference-catalog.service';
 import { DeleteClientDialog } from './delete-client-dialog';
 import { PageHeader } from '../../shared/ui/page-header/page-header';
 
@@ -37,7 +38,8 @@ import { PageHeader } from '../../shared/ui/page-header/page-header';
 })
 export class ClientList {
   protected query = '';
-  protected currency = '';
+  protected currencyId: number | null = null;
+  protected readonly currencies = inject(ReferenceCatalogService).currencies();
   protected order = 'name';
   protected readonly page = signal(0);
   protected filtered(clients: Client[]): Client[] {
@@ -45,7 +47,7 @@ export class ClientList {
     return clients
       .filter(
         (client) =>
-          (!this.currency || client.currency === this.currency) &&
+          (this.currencyId === null || client.currencyId === this.currencyId) &&
           (client.name.toLocaleLowerCase().includes(query) || client.dni.includes(query)),
       )
       .sort((a, b) =>
